@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini React Phase 1 한 장 지도</title>
+<style>
+:root{
+  --bg:#FAFAF7;--card:#FFFFFF;--ink:#1B1F24;--sub:#5B6470;--line:#D9DDE3;
+  --vn:#2458C6;--dom:#9A5B00;--test:#7C3AED;--hist:#0B6B48;--eng:#0E7490;--bad:#C62828;--now:#FFF3A3;--code:#F3F4F6;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151A;--card:#1A1F26;--ink:#E7EAEE;--sub:#9AA4B1;--line:#2F3742;
+  --vn:#6EA2FF;--dom:#F0A94A;--test:#B39BFF;--hist:#4CD39A;--eng:#3CC7E3;--bad:#FF7B72;--now:#5B5200;--code:#232A33;}}
+:root[data-theme="dark"]{
+  --bg:#12151A;--card:#1A1F26;--ink:#E7EAEE;--sub:#9AA4B1;--line:#2F3742;
+  --vn:#6EA2FF;--dom:#F0A94A;--test:#B39BFF;--hist:#4CD39A;--eng:#3CC7E3;--bad:#FF7B72;--now:#5B5200;--code:#232A33;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif}
+main{max-width:1080px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:18px 0 4px}
+h2{font-size:21px;margin:34px 0 10px;border-bottom:2px solid var(--line);padding-bottom:4px}
+h3{font-size:17px;margin:18px 0 6px}
+.sub{color:var(--sub);font-size:14px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:10px 0;min-width:0}
+code,pre,.mono{font-family:Consolas,"Cascadia Mono",monospace}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.92em}
+pre{background:var(--code);padding:10px 12px;border-radius:6px;overflow-x:auto;font-size:13.5px;line-height:1.55;margin:6px 0}
+.vn{color:var(--vn);font-weight:600}.dom{color:var(--dom);font-weight:600}.tst{color:var(--test);font-weight:600}
+.hs{color:var(--hist);font-weight:600}.en{color:var(--eng);font-weight:600}.bad{color:var(--bad);font-weight:600}
+.s{text-decoration:underline;text-decoration-color:var(--vn);text-underline-offset:3px}
+.o{text-decoration:underline;text-decoration-color:var(--dom);text-underline-offset:3px}
+.now{background:var(--now)}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--code)}
+td.nw{white-space:nowrap}
+.tw{overflow-x:auto}
+button{font:inherit;font-size:14px;padding:5px 11px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;cursor:pointer}
+button:hover{border-color:var(--vn)}button[disabled]{opacity:.4;cursor:default}
+button.pri{background:var(--vn);color:#fff;border-color:var(--vn)}
+button.on{outline:2px solid var(--vn)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+.legend i{font-style:normal;font-size:18px;line-height:1}
+.svgwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+svg text{font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif}
+.ly{transition:opacity .2s}.ly.dim{opacity:.12}
+.arrow{stroke-dasharray:6 4;animation:flow 1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-10}}
+@media (prefers-reduced-motion:reduce){.arrow{animation:none}.ly{transition:none}}
+.areas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:760px){.areas{grid-template-columns:minmax(0,1fr)}}
+.surface{border:2px solid var(--line);border-radius:8px;padding:10px;min-height:150px;background:var(--card)}
+#actual-surface{border-color:var(--dom)}#test-surface{border-color:var(--test)}
+.surface article{border:1px solid var(--line);padding:8px 10px;border-radius:6px}
+.surface h3,.surface h1{margin:0 0 4px}.surface small{color:var(--sub);font-weight:400;font-size:.7em}
+.surface ul{padding-left:18px;margin:4px 0}
+textarea{width:100%;min-height:190px;white-space:pre;tab-size:2;overflow:auto;font:13px/1.5 Consolas,monospace;background:var(--code);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px}
+.badge{display:inline-block;font-size:13px;padding:1px 8px;border-radius:5px;border:1px solid currentColor}
+.hist{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.hist span{border:2px solid var(--hist);border-radius:6px;padding:3px 10px;font-size:14px}
+.hist span.cur{background:var(--now);font-weight:700}
+.hist span.fut{border-style:dashed}
+.log{background:#0D1117;color:#C9D1D9;border-radius:6px;padding:8px 10px;font:13px/1.55 Consolas,monospace;max-height:230px;overflow:auto;white-space:pre-wrap}
+.log .k1{color:#79C0FF}.log .k2{color:#7EE787}.log .k3{color:#FF7B72}.log .k4{color:#D2A8FF}
+.tree{font:13px/1.6 Consolas,monospace;overflow-x:auto;white-space:pre}
+.tree .ch{background:var(--now);font-weight:700}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.note{font-size:14px;color:var(--sub)}
+details{margin:8px 0}summary{cursor:pointer;font-weight:600}
+.warn{color:var(--bad);font-size:14px;min-height:1.4em}
+
+.les{border:1px solid var(--line);border-radius:8px;background:var(--card);margin:14px 0;padding:10px 14px}
+.lesg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:14px}
+@media (max-width:980px){.lesg{grid-template-columns:minmax(0,1fr)}}
+.cmc{border-left:4px solid var(--eng);background:var(--code);padding:8px 12px;border-radius:6px}
+.cmc .loc{font-size:13px;color:var(--sub)}.cmc pre{margin:4px 0;background:transparent;padding:0}.cmc .ko{font-size:15px}
+.think{margin-top:10px;font-size:15px}.think div{margin:3px 0}.think .dent{margin-left:1.4em}
+.think .ck{border:1px dashed var(--sub);border-radius:5px;padding:1px 7px;display:inline-block;margin:1px 0}
+.think b,.cond b{font-weight:700}
+.k-반응 b{color:#EA580C}.k-예상 b{color:#2563EB}.k-깨달음 b{color:#16A34A}.k-의심 b{color:#DC2626}.k-결정 b{color:#7C3AED}.k-확인 b{color:#0891B2}.k-해킹 b{color:#C026D3}.k-뉘앙스 b{color:#A16207}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .k-반응 b{color:#FB923C}:root:not([data-theme="light"]) .k-예상 b{color:#60A5FA}:root:not([data-theme="light"]) .k-깨달음 b{color:#4ADE80}:root:not([data-theme="light"]) .k-의심 b{color:#F87171}:root:not([data-theme="light"]) .k-결정 b{color:#A78BFA}:root:not([data-theme="light"]) .k-확인 b{color:#22D3EE}:root:not([data-theme="light"]) .k-해킹 b{color:#E879F9}:root:not([data-theme="light"]) .k-뉘앙스 b{color:#FACC15}}
+:root[data-theme="dark"] .k-반응 b{color:#FB923C}:root[data-theme="dark"] .k-예상 b{color:#60A5FA}:root[data-theme="dark"] .k-깨달음 b{color:#4ADE80}:root[data-theme="dark"] .k-의심 b{color:#F87171}:root[data-theme="dark"] .k-결정 b{color:#A78BFA}:root[data-theme="dark"] .k-확인 b{color:#22D3EE}:root[data-theme="dark"] .k-해킹 b{color:#E879F9}:root[data-theme="dark"] .k-뉘앙스 b{color:#FACC15}
+.fig{border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+.fig .out{font:13px/1.6 Consolas,monospace;white-space:pre-wrap;overflow-x:auto;background:var(--code);padding:8px;border-radius:6px;margin:6px 0;min-height:7em}
+.cond{border:1px solid var(--line);border-left:4px solid var(--eng);border-radius:8px;background:var(--card);padding:8px 14px;margin:12px 0}
+.cond h4{margin:0 0 4px;font-size:16px}.cond .row{margin:3px 0;font-size:15px}.cond .row>b{display:inline-block;min-width:7.5em}
+
+.cw{position:relative;background:var(--code);border-radius:6px;margin-top:6px}
+.cw textarea{position:relative;z-index:1;display:block;background:transparent;color:transparent;caret-color:var(--ink);margin:0;border:1px solid var(--line);font:13px/1.5 Consolas,"Cascadia Mono",monospace;padding:8px;white-space:pre}
+.cw textarea::selection{background:rgba(120,150,255,.35);color:transparent}
+.cw pre.under{position:absolute;left:0;top:0;right:0;margin:0;border:1px solid transparent;padding:8px;overflow:hidden;pointer-events:none;background:transparent;font:13px/1.5 Consolas,"Cascadia Mono",monospace;white-space:pre;color:var(--ink)}
+.c-tag{color:var(--vn);font-weight:600}.c-attr{color:var(--dom)}.c-val{color:var(--hist)}.c-p{color:var(--sub)}
+.c-kw{color:var(--test);font-weight:600}.c-fn{color:var(--vn)}.c-num{color:var(--dom)}.c-cm{color:var(--sub);font-style:italic}
+.code-legend{font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Mini React Phase 1 한 장 지도 <span class="note">(Virtual DOM · Diff · State History)</span></h1>
+<p class="sub">출처: <code>mini_react/element.js</code>, <code>render.js</code>, <code>diff.js</code>, <code>phase1_playground.html</code>(2026-11-07 기준 현재 파일)을 직접 읽고 만들었어요. 아래 3절 실습 칸은 이 파일들의 코드를 그대로 붙여 넣어 실제로 실행해요. 길이는 비율이 아니에요.</p>
+
+<div class="card legend" aria-label="범례">
+  <span><i class="vn">■</i> <b class="vn">파랑</b> VNode — JS 객체(object) 트리</span>
+  <span><i class="dom">■</i> <b class="dom">주황</b> 실제 영역 DOM(Real DOM)</span>
+  <span><i class="tst">■</i> <b class="tst">보라</b> 테스트 영역 DOM(Staging DOM)</span>
+  <span><i class="hs">■</i> <b class="hs">초록</b> 기록(History)</span>
+  <span><i class="en">■</i> <b class="en">청록</b> 엔진 함수(engine function)</span>
+  <span><i class="bad">■</i> <b class="bad">빨강</b> 실패·한계</span>
+  <span><i style="color:#c9a800">■</i> <span class="now">노랑</span> 지금·방금 바뀜</span>
+  <span>밑줄: <span class="s">주체</span> · <span class="o">대상</span></span>
+</div>
+
+<details class="card">
+<summary>축약어·용어 풀이 (눌러서 열기)</summary>
+<div class="tw"><table>
+<tr><th>용어</th><th>원문</th><th>뜻</th></tr>
+<tr><td class="nw">DOM</td><td><b>D</b>ocument <b>O</b>bject <b>M</b>odel</td><td>① 브라우저가 HTML을 읽어 만든 노드(node) 트리예요.<br>② 화면에 실제로 그려지는 대상이라 값을 바꾸면 브라우저가 다시 계산(reflow)해요.<br>③ 이 페이지에서는 <code>#actual-surface</code>와 <code>#test-surface</code> 안의 노드들이에요.</td></tr>
+<tr><td class="nw">VNode</td><td><b>V</b>irtual DOM <b>node</b></td><td>① DOM 노드 하나를 <code>{ type, props: { children } }</code> 모양으로 적어 둔 JS 객체예요.<br>② <code>type</code>은 태그 이름 또는 <code>"TEXT_ELEMENT"</code>(element.js 4행), <code>props.children</code>은 자식 VNode 배열이에요.<br>③ 메모리에만 있어서 바꿔도 화면이 다시 그려지지 않아요.</td></tr>
+<tr><td class="nw">diff</td><td>difference</td><td>① 이전 VNode와 새 VNode를 같은 위치끼리 견주어 다른 곳만 실제 DOM에 반영하는 함수예요.<br>② diff.js 76행에서 시작해요.</td></tr>
+<tr><td class="nw">TEXT_ELEMENT</td><td>text element</td><td>① 글자 노드(<code>nodeType === 3</code>)를 VNode로 바꿀 때 쓰는 <code>type</code> 값이에요(element.js 46~48행).<br>② 글자는 <code>props.nodeValue</code>에 들어가요.</td></tr>
+<tr><td class="nw">reflow</td><td>re + flow</td><td>① 브라우저가 DOM 변경 뒤 요소 위치·크기를 다시 계산하는 일이에요.<br>② 이 페이지는 reflow 횟수를 재지 않아요(미측정). 3절은 <code>MutationObserver</code>가 센 DOM 변경 기록 수만 보여 줘요.</td></tr>
+</table></div>
+</details>
+
+<h2>1. 먼저 결론</h2>
+<div class="card">
+<p><b>한 줄 답:</b> 이 페이지는 <span class="s">엔진 함수</span>가 <span class="o">DOM을 VNode로 적어 두고</span>(<code>domToVnode</code>), <span class="s">diff 함수</span>가 <span class="o">이전·새 VNode의 차이만</span> 실제 영역 DOM에 반영하며, <span class="s">호스트 코드</span>가 <span class="o">반영된 VNode를</span> <code>history</code> 배열에 쌓아 되돌려요.</p>
+<p><b>왜 DOM을 바로 비교하지 않고 VNode를 거치나?</b></p>
+<ol>
+<li>DOM 두 개를 견주려면 화면에 붙은 무거운 노드를 계속 읽어야 해요.</li>
+<li>VNode는 JS 객체라서 <code>history</code>에 여러 시점을 그대로 보관할 수 있어요(phase1_playground.html 140행 <code>let history = [currentVNode]</code>).</li>
+<li>그래서 뒤로가기는 보관된 VNode를 꺼내 <code>diff</code>에 넘기는 일 하나로 끝나요(231~250행 <code>travel</code>).</li>
+</ol>
+<p class="note">상태: 위 세 줄의 근거 파일·행은 직접 읽어 확인했어요. "VNode 쪽이 더 빠르다"는 속도 주장은 이 페이지에서 측정하지 않았어요(미확인).</p>
+</div>
+
+<h3>두 축 2×2 — 헷갈리는 두 질문</h3>
+<div class="tw"><table>
+<tr><th></th><th>DOM → VNode (읽기)</th><th>VNode → DOM (그리기)</th></tr>
+<tr><th>통째로</th><td><span class="en">domToVnode</span>: 트리 전체를 새 객체로 만든다 (element.js 42행)</td><td><span class="en">render</span>: 트리 전체를 새 노드로 만들어 붙인다 (render.js 16행)</td></tr>
+<tr><th>다른 곳만</th><td>해당 없음 — 읽기는 늘 통째로 해요</td><td><span class="en">diff</span>: 바뀐 노드만 고치거나 교체한다 (diff.js 76행)</td></tr>
+</table></div>
+<p class="note">표 아래 설명: 테스트 영역은 <code>render</code>로 통째로 다시 그리고(170행), 실제 영역은 <code>diff</code>로 부분만 고쳐요(208행). 그래서 실제 영역의 <code>&lt;article&gt;</code> 노드는 Patch 뒤에도 같은 객체로 남을 수 있어요.</p>
+
+<h2>1-2. 코드 문장을 머릿속으로 읽기</h2>
+<div class="card note">머릿속 색: 반응 · 예상 · 깨달음 · 의심 · 결정 · 확인 · 사고뚫기 · 뉘앙스, 점선 상자는 코드 문장을 왼쪽에서 오른쪽으로 끊어 읽은 덩어리. 이 페이지는 교재 장이 아니라 코드 네 파일을 읽으므로 "책 문장" 자리에 코드 줄이 들어가고, 오른쪽 그림의 값은 모두 페이지가 열릴 때 실제 엔진으로 계산한 값이에요. 숫자 색 4종은 쓰지 않았어요.</div>
+<div id="lessons"></div>
+<h2>2. 지도 — 왼쪽은 메모리의 VNode, 오른쪽은 브라우저의 DOM</h2>
+<div class="btns" id="layerBtns">
+  <button class="on" data-l="all">전부</button>
+  <button data-l="read">① ③ 읽기 (domToVnode)</button>
+  <button data-l="draw">② 그리기 (render)</button>
+  <button data-l="diff">④ 비교 (diff)</button>
+  <button data-l="hist">⑤ 기록 (history)</button>
+</div>
+<div class="svgwrap"><svg id="map" viewBox="0 0 980 440" width="100%" style="min-width:760px" role="img" aria-label="VNode와 DOM 사이의 변환 지도">
+<defs>
+<marker id="mAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker>
+</defs>
+<text x="180" y="28" text-anchor="middle" font-size="17" font-weight="700" style="fill:var(--vn)">메모리 · VNode</text>
+<text x="180" y="46" text-anchor="middle" font-size="12" style="fill:var(--sub)">JS 객체 — 화면에 안 붙어 있음</text>
+<text x="800" y="28" text-anchor="middle" font-size="17" font-weight="700" style="fill:var(--dom)">브라우저 · DOM</text>
+<text x="800" y="46" text-anchor="middle" font-size="12" style="fill:var(--sub)">화면에 붙은 노드</text>
+
+<g class="ly L-read L-draw L-diff"><rect x="30" y="70" width="300" height="78" rx="8" fill-opacity=".2" style="fill:var(--vn);stroke:var(--vn)"/>
+<text x="180" y="96" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--vn)">currentVNode</text>
+<text x="180" y="116" text-anchor="middle" font-size="12" style="fill:var(--ink)">마지막으로 실제 영역에 반영한 상태</text>
+<text x="180" y="134" text-anchor="middle" font-size="12" style="fill:var(--sub)">142~146행에서 처음 만듦</text></g>
+
+<g class="ly L-read L-diff"><rect x="30" y="230" width="300" height="78" rx="8" fill-opacity=".2" style="fill:var(--vn);stroke:var(--vn)"/>
+<text x="180" y="256" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--vn)">nextVNode</text>
+<text x="180" y="276" text-anchor="middle" font-size="12" style="fill:var(--ink)">Patch 때 테스트 영역에서 새로 읽음</text>
+<text x="180" y="294" text-anchor="middle" font-size="12" style="fill:var(--sub)">190~193행</text></g>
+
+<g class="ly L-hist"><rect x="30" y="350" width="300" height="70" rx="8" fill-opacity=".2" style="fill:var(--hist);stroke:var(--hist)"/>
+<text x="180" y="376" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--hist)">history[ ] · historyIndex</text>
+<text x="180" y="396" text-anchor="middle" font-size="12" style="fill:var(--ink)">Patch마다 splice 뒤 push</text>
+<text x="180" y="412" text-anchor="middle" font-size="12" style="fill:var(--sub)">219~222행</text></g>
+
+<g class="ly L-read L-diff"><rect x="650" y="70" width="300" height="78" rx="8" fill-opacity=".2" style="fill:var(--dom);stroke:var(--dom)"/>
+<text x="800" y="96" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--dom)">실제 영역 #actual-surface</text>
+<text x="800" y="116" text-anchor="middle" font-size="12" style="fill:var(--ink)">프로필 카드 &lt;article&gt;</text>
+<text x="800" y="134" text-anchor="middle" font-size="12" style="fill:var(--sub)">actualRoot가 가리킴</text></g>
+
+<g class="ly L-read L-draw"><rect x="650" y="230" width="300" height="78" rx="8" fill-opacity=".2" style="fill:var(--test);stroke:var(--test)"/>
+<text x="800" y="256" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--test)">테스트 영역 #test-surface</text>
+<text x="800" y="276" text-anchor="middle" font-size="12" style="fill:var(--ink)">직접 고치는 곳 (contenteditable)</text>
+<text x="800" y="294" text-anchor="middle" font-size="12" style="fill:var(--sub)">+ HTML 코드 창 textarea</text></g>
+
+<!-- 1: actual -> currentVNode -->
+<g class="ly L-read"><line class="arrow" x1="648" y1="100" x2="334" y2="100" stroke-width="2.4" marker-end="url(#mAr)" style="stroke:var(--eng)"/>
+<rect x="395" y="76" width="190" height="20" rx="4" style="fill:var(--card)"/>
+<text x="490" y="91" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--eng)">① domToVnode (처음 한 번)</text></g>
+
+<!-- 2: currentVNode -> test via render -->
+<g class="ly L-draw"><path class="arrow" d="M332,130 C470,150 520,270 648,268" fill="none" stroke-width="2.4" marker-end="url(#mAr)" style="stroke:var(--eng)"/>
+<rect x="395" y="178" width="196" height="38" rx="4" style="fill:var(--card)"/>
+<text x="493" y="194" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--eng)">② render(vnode, testSurface)</text>
+<text x="493" y="210" text-anchor="middle" font-size="11" style="fill:var(--sub)">vnodeToTestArea · 170행</text></g>
+
+<!-- 3: test -> nextVNode -->
+<g class="ly L-read"><line class="arrow" x1="648" y1="242" x2="334" y2="242" stroke-width="2.4" marker-end="url(#mAr)" style="stroke:var(--eng)"/>
+<rect x="395" y="222" width="190" height="20" rx="4" style="fill:var(--card)"/>
+<text x="490" y="237" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--eng)">③ domToVnode (Patch 때)</text></g>
+
+<!-- 4: diff box -->
+<g class="ly L-diff"><rect x="400" y="102" width="180" height="46" rx="8" fill-opacity=".18" style="fill:var(--eng);stroke:var(--eng)"/>
+<text x="490" y="122" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--eng)">④ diff(parent, dom, old, new)</text>
+<text x="490" y="139" text-anchor="middle" font-size="11" style="fill:var(--sub)">old=currentVNode · new=nextVNode</text>
+<path class="arrow" d="M580,125 L646,120" fill="none" stroke-width="2.4" marker-end="url(#mAr)" style="stroke:var(--eng)"/>
+<path class="arrow" d="M200,230 C250,200 330,165 398,138" fill="none" stroke-width="2" marker-end="url(#mAr)" style="stroke:var(--eng)"/></g>
+
+<!-- 5: nextVNode -> history -->
+<g class="ly L-hist"><line class="arrow" x1="180" y1="310" x2="180" y2="346" stroke-width="2.4" marker-end="url(#mAr)" style="stroke:var(--hist)"/>
+<rect x="190" y="318" width="190" height="20" rx="4" style="fill:var(--card)"/>
+<text x="285" y="333" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--hist)">⑤ 반영한 뒤 push</text></g>
+
+<g class="ly L-hist"><path class="arrow" d="M334,385 C520,385 620,330 760,312" fill="none" stroke-width="2" marker-end="url(#mAr)" style="stroke:var(--hist)"/>
+<rect x="470" y="372" width="250" height="38" rx="4" style="fill:var(--card)"/>
+<text x="595" y="388" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--hist)">뒤로·앞으로: history[목표]로</text>
+<text x="595" y="403" text-anchor="middle" font-size="11" style="fill:var(--sub)">travel · 231행 → diff + render</text></g>
+<text x="490" y="432" text-anchor="middle" font-size="11" style="fill:var(--sub)">화살표 방향 = 데이터가 가는 쪽. 점선이 흐르는 화살표만 함수 호출이에요.</text>
+</svg></div>
+<div class="card" id="layerInfo" aria-live="polite">전부: 읽기 두 번, 그리기 한 번, 비교 한 번, 기록 한 번이 한 바퀴예요. 버튼을 눌러 한 종류씩 보세요.</div>
+
+<h2>3. 실습 — 실제 코드로 Patch · 뒤로 · 앞으로 해 보기</h2>
+<p class="note">이 칸은 위 네 파일의 함수(<code>domToVnode</code>, <code>normalizeDom</code>, <code>render</code>, <code>diff</code>)를 그대로 붙여 실행해요. 호스트 쪽 <code>patchFromTestArea</code>·<code>travel</code>은 설명용으로 다시 쓴 같은 흐름이에요(교재 밖이 아니라 "이 페이지가 다시 쓴 복사본").</p>
+<div class="btns">
+  <button id="back" disabled>◀ 뒤로가기</button>
+  <button id="patch" class="pri">Patch</button>
+  <button id="forward" disabled>앞으로가기 ▶</button>
+  <b id="hpos" style="align-self:center">1 / 1</b>
+  <button id="reset">처음부터</button>
+</div>
+<div class="btns">
+  <span class="note" style="align-self:center">프리셋(테스트 영역을 고친 뒤 Patch까지 실행):</span>
+  <button data-p="text">텍스트 수정</button>
+  <button data-p="prop">속성 변경</button>
+  <button data-p="append">자식 추가</button>
+  <button data-p="remove1">자식 1개 삭제</button>
+  <button data-p="tag">태그 교체 h3→h1</button>
+  <button data-p="remove2">자식 2개 삭제 (한계 시연)</button>
+  <button data-p="second">최상위 2개 만들기 (한계 시연)</button>
+</div>
+<div class="areas">
+  <div><h3><span class="dom">실제 영역</span> <span class="badge" id="rootBadge" style="color:var(--sub)">아직 Patch 안 함</span></h3>
+    <div class="surface" id="actual-surface"><article class="profile" data-theme="light"><h3>김정글 <small>Frontend Engineer</small></h3><p class="bio">Virtual DOM과 <b>Diff 알고리즘</b>을 직접 구현하고 있습니다.</p><ul class="skills"><li>JavaScript</li><li>DOM API</li><li>Virtual DOM</li><li>Hooks</li></ul></article></div></div>
+  <div><h3><span class="tst">테스트 영역</span> <span class="note">(글자를 직접 고쳐도 돼요)</span></h3>
+    <div class="surface" id="test-surface" contenteditable="true" spellcheck="false"></div></div>
+</div>
+<div class="card"><b>HTML 코드 창</b> — 계층을 들여쓰기 2칸으로 보여 줘요. 여기서 고쳐도 테스트 영역이 따라가요.<br><span class="note">자식이 요소뿐인 요소(<code>article</code>, <code>ul</code>)는 줄을 나누고, 글자와 요소가 섞인 줄(<code>h3</code>, <code>p</code>)은 한 줄로 둬요. 글자 사이 공백이 VNode 값이라서 줄바꿈을 넣으면 값이 달라지기 때문이에요.</span><div class="code-legend"><span class="c-tag">태그 이름</span><span class="c-attr">속성 이름</span><span class="c-val">속성 값·문자열</span><span class="c-p">꺾쇠·기호</span><span class="c-kw">예약어</span><span class="c-fn">함수 호출</span><span class="c-num">숫자·true·null</span></div><div class="cw"><pre class="under" id="codeHl" aria-hidden="true"></pre><textarea id="code" spellcheck="false" wrap="off"></textarea></div></div>
+<div class="card" aria-live="polite"><b>방금 일어난 일</b><div id="status">테스트 영역을 고친 뒤 Patch를 눌러 보세요.</div>
+<div class="warn" id="warn"></div></div>
+<div class="grid2">
+  <div class="card"><b class="hs">State History</b> — 현재 칸이 노랑이에요
+    <div class="hist" id="histStrip"></div><div class="note" id="histNote"></div></div>
+  <div class="card"><b>diff 추적</b> <span class="note">(diff.js 76~115행 규칙을 같은 순서로 계산해 적은 목록)</span>
+    <div class="log" id="trace">아직 Patch 안 함</div></div>
+</div>
+<div class="card"><b class="vn">새 VNode 트리</b> <span class="note">— 노랑 = 이번 diff에서 손댄 노드</span>
+  <div class="tree" id="tree">아직 Patch 안 함</div></div>
+
+<h2>4. domToVnode가 재귀로 읽는 모습 (현재 실제 영역에서 바로 계산)</h2>
+<div class="card">
+<p><span class="s">domToVnode</span>가 <span class="o">&lt;h3&gt;</span>를 만나면 <code>type</code>을 <code>"h3"</code>로 정하고, <code>for</code> 루프(element.js 75~78행)가 자식마다 자기 자신을 다시 부른다(재귀 호출, recursion). 글자 노드는 <code>TEXT_ELEMENT</code>가 돼요.</p>
+<div class="grid2">
+<div><b class="dom">입력: 실제 DOM 조각</b><pre id="h3src"></pre></div>
+<div><b class="vn">출력: domToVnode(h3)</b><pre id="h3vn"></pre></div>
+</div>
+<p class="note">출력은 페이지가 열릴 때 <code>JSON.stringify(domToVnode(h3), null, 1)</code>로 계산한 값이라 손으로 쓴 숫자가 없어요. <code>class</code>는 <code>className</code>으로, <code>on*</code> 속성과 <code>&lt;script&gt;</code>는 기본값(sanitize)에서 제외돼요(62·53행).</p>
+</div>
+
+<h2>5. 한계 — 이 구현을 어디까지 믿어도 되나 (타 AI에게 전달하는 수정 지시서)</h2>
+<div class="card">
+<p><b>용도:</b> 이 절은 읽는 설명이 아니라, 다른 AI에게 그대로 넘겨 <code>mini_react</code>를 고치게 하는 요구사항 지시서예요. 각 한계마다 <b>현상 → 재현 입력 → 원인 줄 → 기대 동작 → 수정 지시 → 완료 조건</b> 순서로 적었어요. 판정은 모두 같은 형식이에요: "이 입력을 넣으면 이 값이 나와야 한다".</p>
+<p><b>상태 표기:</b> <span class="bad">측정</span> = 이 페이지의 실제 엔진으로 직접 돌려 얻은 값, <b>코드 확인</b> = 소스를 읽어 확인, <b>설명</b> = 읽은 코드에서 추론(직접 재지 않음).</p>
+<p><b>공통 제약 (모든 수정에 적용):</b></p>
+<ol>
+<li><code>diff(parentDom, currentDom, oldVNode, newVNode)</code>의 인자 모양을 유지한다. 반환값은 반영 뒤의 최상위 DOM 노드다.</li>
+<li>외부 프레임워크(React, Vue 등)는 쓰지 않는다. HTML · CSS · JavaScript만 쓴다(과제 기술 스택 제한).</li>
+<li>기존 단위 테스트(<code>test_diff.js</code>, <code>test_dom_to_vnode.js</code>, <code>test_render.js</code>)를 깨뜨리지 않는다. 새 동작마다 테스트를 하나 이상 추가한다.</li>
+<li>"변경된 부분만 실제 영역에 렌더링한다"는 과제 요구를 기준으로 삼는다. 결과 DOM이 맞는 것뿐 아니라 <b>손댄 노드 수</b>도 판정에 쓴다(<code>MutationObserver</code> 기록 수).</li>
+</ol>
+</div>
+
+<div class="card">
+<h3>한계 1 — 최상위 요소가 여러 개여도 첫 번째만 처리한다</h3>
+<div class="tw"><table>
+<tr><th class="nw">항목</th><th>내용</th></tr>
+<tr><td class="nw">현상</td><td>테스트 영역에 최상위 요소를 2개 이상 두고 Patch를 눌러도, 둘째 요소 이후는 읽지 않아 "변경 없음"으로 끝난다. <b>코드 확인 + 측정</b>: 3절 "최상위 2개 만들기" 버튼이 이 결과를 낸다.</td></tr>
+<tr><td class="nw">재현 입력</td><td>테스트 영역 끝에 <code>&lt;p&gt;둘째&lt;/p&gt;</code>를 추가한 뒤 Patch.</td></tr>
+<tr><td class="nw">원인 줄</td><td><code>phase1_playground.html</code> 190~193행: <code>testSurface.firstElementChild ? domToVnode(testSurface.firstElementChild) : null</code>. 실제 영역도 <code>actualRoot = actualSurface.firstElementChild</code>(143행)로 첫 요소 하나만 추적한다.</td></tr>
+<tr><td class="nw">기대 동작</td><td>과제는 "현재 테스트 영역 상태를 다시 Virtual DOM으로 만든다"고 요구한다. 상태의 단위는 첫 요소가 아니라 <b>영역 전체</b>다.</td></tr>
+<tr><td class="nw">수정 지시</td><td>① 영역의 모든 최상위 요소를 VNode 배열로 변환하는 함수를 만든다(<code>domToVnodeList(container)</code>). ② <code>history</code>의 한 칸은 이 배열 전체로 한다. ③ 영역 단위 diff 함수를 만들어, 배열의 같은 위치끼리 기존 <code>diff</code>를 부르고 남는 쪽은 추가 · 삭제한다. ④ 최상위 요소가 0개인 상태(빈 영역)도 유효한 상태로 처리한다.</td></tr>
+<tr><td class="nw">완료 조건</td><td>(a) 둘째 요소를 추가한 Patch 뒤 실제 영역에 최상위 요소가 2개이고 <code>실제.innerHTML === 테스트.innerHTML</code>이다. (b) 이 Patch로 <code>history.length</code>가 1만큼 늘고, 뒤로가기로 1개짜리 상태가 돌아온다. (c) 영역을 비우고 Patch해도 예외가 없고 실제 영역도 비워진다.</td></tr>
+</table></div>
+</div>
+
+<div class="card">
+<h3>한계 2 — 자식을 위치(index)로만 비교한다 (key 없음)</h3>
+<div class="tw"><table>
+<tr><th class="nw">항목</th><th>내용</th></tr>
+<tr><td class="nw">현상</td><td><span class="bad">측정</span>: <code>&lt;li&gt;</code> 4개 <code>A B C D</code>에서 맨 앞 A를 지우면 결과 DOM은 맞지만 <code>MutationObserver</code> 기록이 <b>4건</b>이다(필요한 최소는 1건). 맨 앞에 A를 끼워 넣는 경우도 4건이다. 위치 0·1·2의 글자를 모두 덮어쓰고 마지막 하나를 지우기 때문이다.</td></tr>
+<tr><td class="nw">재현 입력</td><td>1) <code>ul</code>에 <code>li</code> A B C D를 두고 A만 삭제 후 Patch. 2) A B C를 B A C로 순서만 바꾸고 Patch(노드가 재사용되지 않고 글자만 덮어써진다는 점은 코드 확인).</td></tr>
+<tr><td class="nw">원인 줄</td><td><code>diff.js</code> 110~114행: <code>for (i = 0; i &lt; count; i += 1) diff(currentDom, domChildren[i], oldChildren[i], newChildren[i])</code>. 같은 위치(i)의 두 자식만 짝지으며 식별자를 보지 않는다.</td></tr>
+<tr><td class="nw">기대 동작</td><td>과제의 중점 포인트는 "최소 변경을 찾기 위한 5가지 핵심 케이스"다. key 지원은 과제에 명시된 의무가 아니므로 <b>선택 구현</b>으로 지시한다. 단 key가 없는 기존 동작은 그대로 유지해야 한다.</td></tr>
+<tr><td class="nw">수정 지시</td><td>① 자식 VNode의 <code>props.key</code>를 식별자로 허용하고, <code>domToVnode</code>가 <code>key</code> 속성을 읽어 VNode에 담게 한다. ② 자식을 비교할 때 key가 있으면 <b>같은 key끼리</b> 짝지어 <code>diff</code>를 부르고, 순서가 다르면 <code>insertBefore</code>로 DOM 노드를 옮긴다. ③ key가 없는 자식은 지금처럼 위치로 비교한다. ④ <code>key</code>는 DOM 속성으로 렌더링하지 않는다.</td></tr>
+<tr><td class="nw">완료 조건</td><td>(a) key 있는 <code>li</code> A B C D에서 A 삭제 시 <code>MutationObserver</code> 기록이 1건이다. (b) A B C를 B A C로 바꿀 때 <code>li</code> DOM 노드 3개의 참조(<code>===</code>)가 Patch 전후 같다. (c) key 없는 기존 테스트는 결과가 그대로다.</td></tr>
+</table></div>
+</div>
+
+<div class="card">
+<h3>한계 3 — 자식을 2개 이상 지우면 예외가 나고 실제 영역이 망가진다</h3>
+<div class="tw"><table>
+<tr><th class="nw">항목</th><th>내용</th></tr>
+<tr><td class="nw">현상</td><td><span class="bad">측정</span>: <code>li</code> 4개 <code>A B C D</code>를 <code>A B</code>로 줄이면 <code>TypeError: Failed to execute 'removeChild' ... parameter 1 is not of type 'Node'</code>가 난다. 예외 뒤 실제 DOM은 기대한 <code>A B</code>가 아니라 <b><code>A B D</code></b>로 남는다. <code>A B</code> → 빈 <code>ul</code>도 같은 예외가 나고 <code>B</code>가 남는다. 마지막 1개만 지우는 경우는 성공한다(측정, 손댄 노드 1건).</td></tr>
+<tr><td class="nw">재현 입력</td><td>3절 "자식 2개 삭제 (한계 시연)" 버튼, 또는 <code>ul</code>의 <code>li</code>를 2개 이상 지우고 Patch.</td></tr>
+<tr><td class="nw">원인 줄</td><td><code>diff.js</code> 109행 <code>const domChildren = childNodes(currentDom)</code>가 <b>살아 있는 목록</b>(live <code>NodeList</code>)을 그대로 들고 있다(코드 확인). 112~114행 루프에서 <code>i = 2</code>의 삭제(84행 <code>parentDom.removeChild</code>)가 목록을 즉시 줄이면, <code>i = 3</code>의 <code>domChildren[3]</code>은 <code>undefined</code>가 된다(측정으로 일치 확인).</td></tr>
+<tr><td class="nw">기대 동작</td><td>과제의 품질 항목은 "엣지 케이스를 최대한 고려한다"이고, 5가지 핵심 케이스에는 노드 삭제가 들어 있다. 삭제 수와 무관하게 결과가 같아야 하고, 실패하더라도 화면과 <code>history</code>가 어긋나면 안 된다.</td></tr>
+<tr><td class="nw">수정 지시</td><td>① 자식 루프 전에 <code>Array.from(currentDom.childNodes)</code>로 <b>스냅샷</b>을 만들어 그 배열만 인덱싱한다. ② 공통 길이까지는 위치별로 <code>diff</code>를 부르고, <code>old</code>가 더 길면 초과 자식을 <b>뒤에서 앞으로</b> 제거한다. ③ <code>patchFromTestArea</code>는 <code>diff</code>를 <code>try/catch</code>로 감싸고, 예외가 나면 <code>history</code>와 <code>currentVNode</code>를 바꾸지 않은 채 실제 영역을 <code>currentVNode</code>로 다시 그려 복구한다(3절 데모가 이미 하는 복구와 같은 방식). ④ 복구가 일어났음을 <code>status</code>에 표시한다.</td></tr>
+<tr><td class="nw">완료 조건</td><td>(a) <code>A B C D → A B</code>, <code>A B C D → 빈 ul</code>, <code>A B C → A</code> 세 경우 모두 예외 0이고 <code>실제.innerHTML === 기대 HTML</code>이다. (b) 각 경우 <code>MutationObserver</code> 기록 수가 지운 노드 수와 같다. (c) 강제로 예외를 낸 경우에도 <code>history.length</code>와 <code>historyIndex</code>가 Patch 전과 같다.</td></tr>
+</table></div>
+</div>
+
+<div class="card">
+<h3>우선순위와 판정</h3>
+<div class="tw"><table>
+<tr><th class="nw">순서</th><th>한계</th><th>이유</th></tr>
+<tr><td class="nw">1</td><td>한계 3 (다중 삭제)</td><td>예외와 화면 손상이 일어나는 <b>올바름(correctness)</b> 오류다. 과제의 필수 케이스인 노드 삭제에 걸린다.</td></tr>
+<tr><td class="nw">2</td><td>한계 1 (최상위 여러 개)</td><td>결과가 조용히 무시되는 <b>누락</b>이다. 요구한 "영역 상태"의 정의와 어긋난다.</td></tr>
+<tr><td class="nw">3</td><td>한계 2 (key)</td><td>결과는 맞고 <b>효율</b>만 나쁘다. 과제가 요구한 의무가 아니라 차별화 요소로 다룬다.</td></tr>
+</table></div>
+<p class="note">표 아래 설명: 한계 1과 2의 "손댄 노드 수" 판정은 이 페이지가 쓴 <code>MutationObserver</code> 기록 수 기준이에요. 이 값은 DOM 변경 기록 수이지 브라우저의 reflow · repaint 횟수가 아니에요(미측정).</p>
+</div>
+
+<div class="card">
+<h3>붙여넣기용 지시문 (그대로 복사해서 다른 AI에게 전달)</h3>
+<div class="btns"><button id="copyPrompt">지시문 복사</button><span class="note" id="copyMsg" aria-live="polite"></span></div>
+<pre id="promptText">[역할] 너는 mini_react(Vanilla JS Virtual DOM + Diff + Patch)의 수정 담당이다.
+[대상 파일] mini_react/diff.js, mini_react/element.js, mini_react/phase1_playground.html
+[공통 제약]
+1. diff(parentDom, currentDom, oldVNode, newVNode)의 인자 모양과 반환값(반영 뒤 최상위 DOM 노드)을 유지한다.
+2. 외부 프레임워크를 쓰지 않는다. HTML, CSS, JavaScript만 쓴다.
+3. 기존 단위 테스트(test_diff.js, test_dom_to_vnode.js, test_render.js)를 깨뜨리지 않고, 수정마다 테스트를 하나 이상 추가한다.
+4. 판정은 결과 DOM과 손댄 노드 수(MutationObserver 기록 수) 둘 다로 한다.
+
+[수정 1 — 필수, 최우선] 자식을 2개 이상 지우면 예외가 난다.
+- 현상: ul의 li A,B,C,D를 A,B로 줄이면 TypeError(removeChild)가 나고 실제 DOM이 A,B,D로 남는다. A,B를 빈 ul로 줄여도 예외가 난다.
+- 원인: diff.js 109행이 살아 있는 childNodes를 그대로 쓰고, 112~114행 루프 중 삭제가 목록을 줄여 domChildren[i]가 undefined가 된다.
+- 지시: 루프 전에 Array.from(currentDom.childNodes)로 스냅샷을 만든다. 공통 길이까지 위치별 diff, old가 더 길면 초과분을 뒤에서 앞으로 제거한다. patchFromTestArea는 diff를 try/catch로 감싸 예외 시 history와 currentVNode를 바꾸지 않고 실제 영역을 currentVNode로 다시 그린 뒤 status에 복구 사실을 표시한다.
+- 완료: A B C D→A B, A B C D→빈 ul, A B C→A 모두 예외 0, 실제.innerHTML === 기대 HTML, MutationObserver 기록 수 = 지운 노드 수. 예외를 강제로 내도 history.length와 historyIndex가 Patch 전과 같다.
+
+[수정 2 — 필수] 최상위 요소가 여러 개여도 첫 번째만 처리한다.
+- 현상: 테스트 영역에 최상위 요소를 둘 두고 Patch하면 "변경 없음"으로 끝난다.
+- 원인: phase1_playground.html 190~193행의 testSurface.firstElementChild, 143행의 actualRoot = actualSurface.firstElementChild.
+- 지시: 영역의 모든 최상위 요소를 VNode 배열로 바꾸는 domToVnodeList(container)를 만들고, history 한 칸을 이 배열 전체로 한다. 배열 위치별로 기존 diff를 부르고 남는 쪽은 추가 또는 삭제한다. 최상위 0개(빈 영역)도 유효한 상태로 처리한다.
+- 완료: 둘째 요소 추가 Patch 뒤 실제 영역 최상위 요소 2개, 실제.innerHTML === 테스트.innerHTML, history.length가 1만큼 증가, 뒤로가기 시 1개짜리 상태 복원. 영역을 비워 Patch해도 예외 0.
+
+[수정 3 — 선택, 마지막] 자식을 위치로만 비교한다(key 없음).
+- 현상: li A,B,C,D에서 A만 지워도 MutationObserver 기록이 4건이다(최소 1건).
+- 원인: diff.js 110~114행의 위치(i) 기준 짝짓기.
+- 지시: props.key를 식별자로 허용하고 domToVnode가 key 속성을 VNode에 담게 한다. key가 있는 자식은 같은 key끼리 diff하고 순서가 다르면 insertBefore로 노드를 옮긴다. key가 없는 자식은 지금처럼 위치로 비교한다. key는 DOM 속성으로 렌더링하지 않는다.
+- 완료: key 있는 li A,B,C,D에서 A 삭제 시 기록 1건. A,B,C→B,A,C 때 li DOM 노드 3개의 참조가 Patch 전후 같다. key 없는 기존 테스트 결과는 그대로다.
+
+[보고 형식] 수정마다 (1) 바꾼 파일과 줄, (2) 추가한 테스트 이름, (3) 완료 조건 각 항목의 실제 측정값을 표로 적는다. 측정하지 않은 항목은 "미측정"이라고 쓴다.</pre>
+</div>
+
+<h2>6. 조건식 상자 — 코드의 if 하나가 하는 일</h2>
+<p class="note">칸 순서: 1초 컷 → 참 · 거짓 → 없으면 생기는 일 → 바로 읽기 → 쓰인 곳 → 뇌의 생각 → 원문 줄.</p>
+<div id="conds"></div>
+<h2>끝. 정리</h2>
+<h3>요구사항 → 코드 위치 (이번에 grep으로 확인한 줄)</h3>
+<div class="tw"><table>
+<tr><th>요구사항</th><th>코드</th><th>줄</th></tr>
+<tr><td>1 DOM → VNode</td><td>element.js <code>domToVnode</code></td><td>42~80</td></tr>
+<tr><td>2 diff</td><td>diff.js <code>diff</code> / <code>updateDom</code></td><td>76~116 / 50~70</td></tr>
+<tr><td>3 두 영역 + 세 버튼</td><td>phase1_playground.html 버튼 / 실제 / 테스트 / textarea</td><td>62~64 / 83 / 99 / 103</td></tr>
+<tr><td>4 로드 시 VNode 만들기</td><td>같은 파일 초기화</td><td>142~146</td></tr>
+<tr><td>5 테스트 영역 그리기</td><td><code>vnodeToTestArea</code>, 첫 호출</td><td>170~176, 253</td></tr>
+<tr><td>6 자유 수정</td><td><code>contenteditable</code>, textarea, <code>input</code> 리스너</td><td>99, 103, 262~268</td></tr>
+<tr><td>7 Patch</td><td><code>patchFromTestArea</code></td><td>189~229</td></tr>
+<tr><td>8 뒤로·앞으로</td><td><code>travel</code></td><td>231~250</td></tr>
+</table></div>
+
+<h3>헷갈리는 짝</h3>
+<div class="tw"><table>
+<tr><th>짝</th><th>차이</th><th>이 페이지의 예</th></tr>
+<tr><td class="nw">DOM / VNode</td><td>DOM은 화면에 붙은 노드, VNode는 그것을 적은 JS 객체예요.</td><td><code>actualRoot</code>(DOM) 대 <code>currentVNode</code>(VNode)</td></tr>
+<tr><td class="nw">render / diff</td><td>render는 통째로 새로 만들고, diff는 달라진 곳만 고쳐요.</td><td>테스트 영역은 render, 실제 영역은 diff</td></tr>
+<tr><td class="nw">currentVNode / nextVNode</td><td>current는 실제 영역에 마지막으로 반영된 것, next는 테스트 영역에서 막 읽은 것이에요.</td><td>diff의 old와 new 인자</td></tr>
+<tr><td class="nw">"노드 보존" 배지 / "최소 연산"</td><td>배지는 Patch 전후 루트 DOM 참조가 같은지(<code>rootBefore === rootAfter</code>)만 알려 줘요.</td><td>자식 노드가 다 유지됐다는 뜻은 아니에요</td></tr>
+</table></div>
+
+<h3>한 문장씩 외우기</h3>
+<ol>
+<li><span class="s">domToVnode</span>가 <span class="o">DOM 노드를</span> 재귀로 읽어 <code>{ type, props }</code> 객체로 바꾼다.</li>
+<li><span class="s">render</span>가 <span class="o">VNode를</span> <code>createElement</code>로 새 DOM 노드로 만들어 붙인다.</li>
+<li><span class="s">diff</span>가 <span class="o">같은 위치의 old·new VNode를</span> 견주어 type이 다르면 <code>replaceChild</code>, 같으면 <code>updateDom</code>으로 고친다.</li>
+<li><span class="s">patchFromTestArea</span>가 <span class="o">반영한 VNode를</span> <code>history.splice(historyIndex + 1)</code> 뒤 <code>push</code>한다.</li>
+<li><span class="s">travel</span>이 <span class="o">history[목표]를</span> 실제 영역에는 diff로, 테스트 영역에는 render로 되돌린다.</li>
+</ol>
+
+<h3>주의할 점 (붙여 넣은 분석문과 실제 파일이 다른 곳)</h3>
+<div class="tw"><table>
+<tr><th>항목</th><th>분석문의 표기</th><th>이 페이지가 따른 것</th></tr>
+<tr><td class="nw">세 버튼 줄</td><td>44~48행</td><td>grep 결과 62~64행</td></tr>
+<tr><td class="nw">실제·테스트 영역</td><td>60~76행 / 78~91행</td><td>grep 결과 83행 / 99행(textarea 103행)</td></tr>
+<tr><td class="nw">input 리스너</td><td>261~268행</td><td>grep 결과 262행과 266행</td></tr>
+<tr><td class="nw">diff 시작</td><td>74~114행</td><td>직접 읽은 결과 76~116행</td></tr>
+</table></div>
+<p class="note">분석문의 줄 번호는 파일이 바뀌어 어긋난 것으로 추정돼요(추정). 함수 이름과 동작 설명은 코드와 일치해요.</p>
+
+<h3>출처</h3>
+<p class="note">element.js · render.js · diff.js · phase1_playground.html (mini_react 폴더, 읽은 순서와 같음). 외부 검색 없음.</p>
+</main>
+
+<script>
+(function () {
+"use strict";
+
+const TEXT_ELEMENT = "TEXT_ELEMENT";
+
+function createTextElement(text) {
+  return {
+    type: TEXT_ELEMENT,
+    props: {
+      nodeValue: String(text),
+      children: [],
+    },
+  };
+}
+
+function normalizeChild(child) {
+  if (typeof child === "string" || typeof child === "number") {
+    return createTextElement(child);
+  }
+  return child;
+}
+
+function createElement(type, props, ...children) {
+  const normalizedChildren = children
+    .flat(Infinity)
+    .filter((child) => child !== null && child !== undefined && child !== false)
+    .map(normalizeChild);
+
+  return {
+    type,
+    props: {
+      ...(props || {}),
+      children: normalizedChildren,
+    },
+  };
+}
+
+function isFormattingWhitespace(text) {
+  return /^\s*$/.test(text) && text.includes("\n");
+}
+
+function domToVnode(domNode, options = {}) {
+  const sanitize = options.sanitize !== false;
+  if (domNode == null) return null;
+
+  if (domNode.nodeType === 3) {
+    const text = domNode.nodeValue == null ? "" : String(domNode.nodeValue);
+    return isFormattingWhitespace(text) ? null : createTextElement(text);
+  }
+  if (domNode.nodeType !== 1) return null;
+
+  const type = String(domNode.localName || domNode.tagName || "").toLowerCase();
+  if (type === "" || (sanitize && type === "script")) return null;
+
+  const props = {};
+  const booleanAttributes = new Set([
+    "checked", "selected", "disabled", "multiple", "readonly", "required",
+    "autofocus", "hidden", "open", "novalidate", "formnovalidate",
+  ]);
+  for (const attribute of Array.from(domNode.attributes || [])) {
+    const sourceName = String(attribute.name);
+    if (sanitize && /^on/i.test(sourceName)) continue;
+    const name = sourceName.toLowerCase() === "class"
+      ? "className"
+      : sourceName.toLowerCase() === "for" ? "htmlFor" : sourceName;
+    props[name] = booleanAttributes.has(sourceName.toLowerCase())
+      ? true
+      : String(attribute.value);
+  }
+
+  const source = type === "template" && domNode.content
+    ? domNode.content
+    : domNode;
+  const children = [];
+  for (const child of Array.from(source.childNodes || [])) {
+    const vnode = domToVnode(child, options);
+    if (vnode !== null) children.push(vnode);
+  }
+  return { type, props: { ...props, children } };
+}
+
+function normalizeDom(domNode, options = {}) {
+  const sanitize = options.sanitize !== false;
+  for (const child of Array.from(domNode.childNodes || [])) {
+    if (child.nodeType === 3) {
+      if (isFormattingWhitespace(String(child.nodeValue || ""))) {
+        child.parentNode.removeChild(child);
+      }
+    } else if (child.nodeType === 1) {
+      if (sanitize && String(child.localName || child.tagName).toLowerCase() === "script") {
+        child.parentNode.removeChild(child);
+        continue;
+      }
+      if (sanitize) {
+        for (const attribute of Array.from(child.attributes || [])) {
+          if (/^on/i.test(attribute.name)) child.removeAttribute(attribute.name);
+        }
+      }
+      normalizeDom(child, options);
+    } else if (child.nodeType !== 1) {
+      child.parentNode.removeChild(child);
+    }
+  }
+  if (typeof domNode.normalize === "function") domNode.normalize();
+  return domNode;
+}
+
+const api = {
+  TEXT_ELEMENT,
+  createElement,
+  createTextElement,
+  domToVnode,
+  normalizeDom,
+};
+
+if (typeof module !== "undefined" && module.exports) module.exports = api;
+if (typeof globalThis !== "undefined") globalThis.MiniReactElement = api;
+})();
+
+(function () {
+"use strict";
+
+const TEXT_ELEMENT = "TEXT_ELEMENT";
+
+function setDomProp(dom, name, value) {
+  const isAttribute = name.slice(0, 5) === "data-" ||
+    name.slice(0, 5) === "aria-" || !(name in dom);
+  if (isAttribute && typeof dom.setAttribute === "function") {
+    dom.setAttribute(name, String(value));
+  } else {
+    dom[name] = value;
+  }
+}
+
+function render(element, container) {
+  if (element == null || typeof element !== "object") {
+    throw new TypeError("render expects a virtual DOM element object");
+  }
+  if (container == null || typeof container.appendChild !== "function") {
+    throw new TypeError("render expects a DOM container with appendChild()");
+  }
+
+  if (typeof element.type === "function") {
+    const componentApi = typeof module !== "undefined" && module.exports
+      ? require("./component")
+      : globalThis.MiniReactComponent;
+    return componentApi.renderComponent(element, container, render);
+  }
+
+  const isTextElement = element.type === TEXT_ELEMENT;
+  const dom = isTextElement
+    ? document.createTextNode("")
+    : document.createElement(element.type);
+
+  for (const name of Object.keys(element.props || {})) {
+    if (name === "children") {
+      continue;
+    }
+    if (name.slice(0, 2).toLowerCase() === "on" &&
+        typeof element.props[name] === "function") {
+      dom.addEventListener(name.slice(2).toLowerCase(), element.props[name]);
+      continue;
+    }
+    if (isTextElement && name === "nodeValue") {
+      dom.nodeValue = element.props[name];
+    } else {
+      setDomProp(dom, name, element.props[name]);
+    }
+  }
+
+  const children = (element.props && element.props.children) || [];
+  for (const child of children) {
+    render(child, dom);
+  }
+
+  container.appendChild(dom);
+  return dom;
+}
+
+const api = { TEXT_ELEMENT, render, setDomProp };
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = api;
+}
+if (typeof globalThis !== "undefined") {
+  globalThis.MiniReactRender = api;
+}
+})();
+
+(function () {
+"use strict";
+
+const renderApi = typeof module !== "undefined" && module.exports
+  ? require("./render")
+  : globalThis.MiniReactRender;
+const TEXT_ELEMENT = renderApi.TEXT_ELEMENT;
+const render = renderApi.render;
+const setDomProp = renderApi.setDomProp;
+
+function isEventProp(name) {
+  return name.slice(0, 2).toLowerCase() === "on";
+}
+
+function eventName(name) {
+  return name.slice(2).toLowerCase();
+}
+
+function removeProp(dom, name, value) {
+  if (isEventProp(name)) {
+    if (typeof value === "function") {
+      dom.removeEventListener(eventName(name), value);
+    }
+    return;
+  }
+
+  if (typeof dom.removeAttribute === "function") {
+    dom.removeAttribute(name === "className" ? "class" : name);
+  }
+  if (name in dom) {
+    dom[name] = typeof dom[name] === "boolean" ? false : "";
+  } else {
+    delete dom[name];
+  }
+}
+
+function setProp(dom, name, value, previousValue) {
+  if (isEventProp(name)) {
+    if (typeof previousValue === "function") {
+      dom.removeEventListener(eventName(name), previousValue);
+    }
+    if (typeof value === "function") {
+      dom.addEventListener(eventName(name), value);
+    }
+    return;
+  }
+  setDomProp(dom, name, value);
+}
+
+function updateDom(dom, prevProps, nextProps) {
+  prevProps = prevProps || {};
+  nextProps = nextProps || {};
+
+  for (const name of Object.keys(prevProps)) {
+    if (name !== "children" && !Object.prototype.hasOwnProperty.call(nextProps, name)) {
+      removeProp(dom, name, prevProps[name]);
+    }
+  }
+
+  for (const name of Object.keys(nextProps)) {
+    if (name === "children") {
+      continue;
+    }
+    const oldValue = prevProps[name];
+    const newValue = nextProps[name];
+    if (!Object.is(oldValue, newValue)) {
+      setProp(dom, name, newValue, oldValue);
+    }
+  }
+}
+
+function childNodes(dom) {
+  return dom.childNodes || dom.children || [];
+}
+
+function diff(parentDom, currentDom, oldVNode, newVNode) {
+  if (oldVNode == null && newVNode == null) {
+    return null;
+  }
+  if (oldVNode == null) {
+    return render(newVNode, parentDom);
+  }
+  if (newVNode == null) {
+    parentDom.removeChild(currentDom);
+    return null;
+  }
+
+  if (typeof oldVNode.type === "function" &&
+      typeof newVNode.type === "function" &&
+      oldVNode.type === newVNode.type) {
+    const componentApi = typeof module !== "undefined" && module.exports
+      ? require("./component")
+      : globalThis.MiniReactComponent;
+    return componentApi.updateComponent(parentDom, currentDom, oldVNode, newVNode, diff);
+  }
+
+  if (oldVNode.type !== newVNode.type) {
+    const temporaryContainer = document.createDocumentFragment
+      ? document.createDocumentFragment()
+      : { children: [], appendChild(node) { this.children.push(node); return node; } };
+    const newDom = render(newVNode, temporaryContainer);
+    parentDom.replaceChild(newDom, currentDom);
+    return newDom;
+  }
+
+  updateDom(currentDom, oldVNode.props, newVNode.props);
+  const oldChildren = (oldVNode.props && oldVNode.props.children) || [];
+  const newChildren = (newVNode.props && newVNode.props.children) || [];
+  const domChildren = childNodes(currentDom);
+  const count = Math.max(oldChildren.length, newChildren.length);
+
+  for (let i = 0; i < count; i += 1) {
+    diff(currentDom, domChildren[i], oldChildren[i], newChildren[i]);
+  }
+  return currentDom;
+}
+
+const api = { diff, updateDom };
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = api;
+}
+if (typeof globalThis !== "undefined") {
+  globalThis.MiniReactDiff = api;
+}
+})();
+
+</script>
+<script>
+"use strict";
+(function(){
+const { domToVnode, normalizeDom } = MiniReactElement;
+const { render } = MiniReactRender;
+const { diff } = MiniReactDiff;
+const $ = id => document.getElementById(id);
+
+/* ---- 2절 레이어 버튼 ---- */
+const INFO = {
+ all:"전부: 읽기 두 번, 그리기 한 번, 비교 한 번, 기록 한 번이 한 바퀴예요. 버튼을 눌러 한 종류씩 보세요.",
+ read:"읽기: domToVnode가 DOM 노드를 VNode 객체로 바꿔요. ①은 페이지가 열릴 때 실제 영역을, ③은 Patch 때 테스트 영역을 읽어요.",
+ draw:"그리기: render가 VNode로 새 DOM 노드를 만들어 테스트 영역에 붙여요. 실제 영역은 render가 아니라 diff가 고쳐요.",
+ diff:"비교: diff가 currentVNode(old)와 nextVNode(new)를 같은 위치끼리 견주고, 다른 곳만 실제 영역 DOM에 반영해요.",
+ hist:"기록: Patch가 성공하면 nextVNode를 history에 push해요. 뒤로·앞으로는 history[목표]를 diff와 render에 다시 넣어요."
+};
+$("layerBtns").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  const k=b.dataset.l;
+  document.querySelectorAll("#layerBtns button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("#map .ly").forEach(g=>{
+    g.classList.toggle("dim", k!=="all" && !g.classList.contains("L-"+k));
+  });
+  $("layerInfo").textContent = INFO[k];
+});
+
+/* ---- 3절 상태 ---- */
+const actualSurface=$("actual-surface"), testSurface=$("test-surface"), code=$("code");
+const INITIAL = actualSurface.innerHTML;
+let actualRoot, currentVNode, history, historyIndex, lastTrace=[], lastTree=null;
+
+function init(){
+  actualSurface.innerHTML = INITIAL;
+  normalizeDom(actualSurface);
+  actualRoot = actualSurface.firstElementChild;
+  currentVNode = domToVnode(actualRoot);
+  history=[currentVNode]; historyIndex=0;
+  vnodeToTest(currentVNode);
+  $("rootBadge").textContent="아직 Patch 안 함"; $("rootBadge").style.color="var(--sub)";
+  $("status").innerHTML='<span class="s">페이지</span>가 <span class="o">실제 영역</span>을 <code>domToVnode</code>로 읽어 <code>history[0]</code>에 넣고, <code>render</code>로 테스트 영역에 복제했다.';
+  $("warn").textContent=""; $("trace").textContent="아직 Patch 안 함"; $("tree").textContent="아직 Patch 안 함";
+  lastTrace=[]; drawHist();
+}
+/* 코드 창용 들여쓰기: 자식이 요소뿐인 요소만 줄을 나눔. 글자와 요소가 섞인 요소는 한 줄 유지(글자 사이 공백이 VNode 값이라 줄바꿈을 넣으면 값이 달라짐) */
+function pretty(el,d){
+  const pad="  ".repeat(d), kids=[...el.childNodes];
+  const onlyEls=kids.length>0&&kids.every(c=>c.nodeType===1);
+  if(!onlyEls) return pad+el.outerHTML;
+  const shell=el.cloneNode(false).outerHTML, open=shell.slice(0,shell.lastIndexOf("</")), close=shell.slice(shell.lastIndexOf("</"));
+  return pad+open+"\n"+kids.map(c=>pretty(c,d+1)).join("\n")+"\n"+pad+close;
+}
+function syncCode(){ code.value = testSurface.firstElementChild ? pretty(testSurface.firstElementChild,0) : ""; if(window.__paint)window.__paint(); }
+function vnodeToTest(v){ testSurface.replaceChildren(); if(v!==null) render(v,testSurface); syncCode(); }
+code.addEventListener("input",()=>{
+  const t=document.createElement("div"); t.innerHTML=code.value.trim(); normalizeDom(t);
+  testSurface.replaceChildren(); while(t.firstChild) testSurface.appendChild(t.firstChild);
+});
+testSurface.addEventListener("input",syncCode);
+
+/* diff.js 76~115행 규칙을 같은 순서로 계산한 추적 */
+function traceDiff(o,n,path,out){
+  if(o==null&&n==null) return;
+  if(o==null){ out.push({path,act:"추가",why:"old가 없음 → render(new)"}); return; }
+  if(n==null){ out.push({path,act:"삭제",why:"new가 없음 → removeChild"}); return; }
+  if(o.type!==n.type){ out.push({path,act:"교체",why:o.type+" → "+n.type+" → replaceChild"}); return; }
+  const ch=[]; const keys=new Set([...Object.keys(o.props),...Object.keys(n.props)]);
+  keys.forEach(k=>{ if(k==="children") return; if(!Object.is(o.props[k],n.props[k])) ch.push(k); });
+  if(ch.length) out.push({path,act:"속성",why:"updateDom: "+ch.join(", ")});
+  const oc=o.props.children||[], nc=n.props.children||[], c=Math.max(oc.length,nc.length);
+  for(let i=0;i<c;i++) traceDiff(oc[i],nc[i],path+"/"+(nc[i]?label(nc[i]):label(oc[i]))+"["+i+"]",out);
+}
+function label(v){ return v.type==="TEXT_ELEMENT"?"#text":v.type; }
+function treeText(v,ind,path,mark,lines){
+  const p=path, hit=mark.has(p);
+  let s=" ".repeat(ind*2)+(v.type==="TEXT_ELEMENT"?'"'+v.props.nodeValue+'"':"<"+v.type+(v.props.className?' class="'+v.props.className+'"':"")+">");
+  lines.push({s,hit});
+  (v.props.children||[]).forEach((c,i)=>treeText(c,ind+1,p+"/"+label(c)+"["+i+"]",mark,lines));
+}
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function showTree(v,tr){
+  if(!v){ $("tree").textContent="(비어 있음)"; return; }
+  const mark=new Set(tr.map(t=>t.path)); const lines=[];
+  treeText(v,0,"/"+label(v)+"[0]",mark,lines);
+  $("tree").innerHTML=lines.map(l=>l.hit?'<span class="ch">'+esc(l.s)+'</span>':esc(l.s)).join("\n");
+}
+function showTrace(tr){
+  if(!tr.length){ $("trace").innerHTML='<span class="k2">변경 없음 — 손댄 노드 0개</span>'; return; }
+  $("trace").innerHTML=tr.map((t,i)=>'<span class="k1">#'+(i+1)+'</span> <span class="k4">'+t.act+'</span> '+esc(t.path)+'\n     <span class="k2">'+esc(t.why)+'</span>').join("\n");
+}
+function drawHist(){
+  $("hpos").textContent=(historyIndex+1)+" / "+history.length;
+  $("back").disabled = historyIndex===0;
+  $("forward").disabled = historyIndex===history.length-1;
+  $("histStrip").innerHTML=history.map((_,i)=>'<span class="'+(i===historyIndex?"cur":(i>historyIndex?"fut":""))+'">'+(i===0?"초기":"#"+i)+(i===historyIndex?" ◀ 지금":"")+'</span>').join("");
+  $("histNote").textContent="historyIndex = "+historyIndex+", history.length = "+history.length+(historyIndex<history.length-1?" — 점선 칸은 앞으로가기로 갈 수 있는 기록이에요.":"");
+}
+function same(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function recover(){
+  actualSurface.replaceChildren(); actualRoot=render(currentVNode,actualSurface);
+}
+
+function patch(name){
+  $("warn").textContent="";
+  normalizeDom(testSurface);
+  const next = testSurface.firstElementChild ? domToVnode(testSurface.firstElementChild) : null;
+  if(same(currentVNode,next)){
+    $("status").innerHTML='<span class="s">Patch</span>가 <code>nextVNode</code>와 <code>currentVNode</code>를 <code>JSON.stringify</code>로 견주어 같다고 보고 <span class="o">diff를 부르지 않았다</span> (변경 없음).'+(testSurface.children.length>1?' <span class="bad">테스트 영역에 최상위 요소가 '+testSurface.children.length+'개 있지만 <code>firstElementChild</code>만 읽어서 나머지는 무시됐다.</span>':'');
+    $("trace").innerHTML='<span class="k2">변경 없음 — diff 호출 0번</span>'; $("tree").textContent="(변경 없음)";
+    return;
+  }
+  const tr=[]; traceDiff(currentVNode,next,"/"+label(currentVNode||{type:"?"})+"[0]",tr);
+  const before=actualSurface.firstElementChild;
+  const obs=new MutationObserver(()=>{}); obs.observe(actualSurface,{subtree:true,childList:true,attributes:true,characterData:true});
+  try{
+    actualRoot=diff(actualSurface,actualRoot,currentVNode,next);
+  }catch(err){
+    obs.disconnect();
+    $("warn").innerHTML='<b>실패:</b> <code>'+esc(String(err))+'</code> — diff.js 113행의 <code>diff(currentDom, domChildren[i], …)</code>가 이미 줄어든 <code>childNodes</code>의 빈 자리를 지우려 했어요. 이 데모는 이어서 쓸 수 있게 실제 영역을 <code>currentVNode</code>로 다시 그렸어요(엔진 동작이 아니라 데모의 복구).';
+    showTrace(tr); showTree(next,tr); recover();
+    $("status").innerHTML='<span class="s">diff</span>가 <span class="o">실제 영역</span>을 고치다가 예외를 던졌고, history에는 아무것도 넣지 않았다.';
+    return;
+  }
+  const mut=obs.takeRecords().length; obs.disconnect();
+  const after=actualSurface.firstElementChild, reused=before===after;
+  const b=$("rootBadge"); b.textContent=reused?"최상위 DOM 노드 보존":"최상위 DOM 노드 교체됨"; b.style.color=reused?"var(--hist)":"var(--bad)";
+  currentVNode=next; history.splice(historyIndex+1); history.push(next); historyIndex=history.length-1;
+  vnodeToTest(next); drawHist(); showTrace(tr); showTree(next,tr);
+  $("status").innerHTML='<span class="s">Patch</span>가 <span class="o">'+(name||("Patch #"+historyIndex))+'</span> 내용을 <code>diff</code>로 실제 영역에 반영했다. 손댄 노드 <b class="now">'+tr.length+'개</b>, <code>MutationObserver</code>가 센 DOM 변경 기록 <b class="now">'+mut+'건</b>, 루트 DOM 참조 '+(reused?"같음(보존)":"다름(교체)")+'.';
+}
+function travel(d){
+  const t=historyIndex+d; if(t<0||t>=history.length) return;
+  const target=history[t], tr=[]; traceDiff(currentVNode,target,"/"+label(currentVNode)+"[0]",tr);
+  try{ actualRoot=diff(actualSurface,actualRoot,currentVNode,target); }
+  catch(err){ $("warn").innerHTML='<b>실패:</b> <code>'+esc(String(err))+'</code> (데모가 실제 영역을 다시 그렸어요)'; currentVNode=target; recover(); }
+  currentVNode=target; historyIndex=t; vnodeToTest(target); drawHist(); showTrace(tr); showTree(target,tr);
+  $("status").innerHTML='<span class="s">travel('+d+')</span>이 <span class="o">history['+t+']</span>을 실제 영역에는 <code>diff</code>로, 테스트 영역에는 <code>render</code>로 되돌렸다. 손댄 노드 <b class="now">'+tr.length+'개</b>.';
+}
+$("patch").onclick=()=>patch();
+$("back").onclick=()=>travel(-1);
+$("forward").onclick=()=>travel(1);
+$("reset").onclick=init;
+
+const PRE={
+ text(){ const s=testSurface.querySelector("small"); if(s) s.textContent="AI Systems Architect"; },
+ prop(){ const a=testSurface.querySelector("article"); a.setAttribute("data-theme","dark"); a.setAttribute("style","background:#1e293b;color:#f8fafc"); },
+ append(){ const li=document.createElement("li"); li.textContent="Redis"; testSurface.querySelector("ul.skills").appendChild(li); },
+ remove1(){ const u=testSurface.querySelector("ul.skills"); u.removeChild(u.lastElementChild); },
+ tag(){ const h=testSurface.querySelector("h3"); const n=document.createElement("h1"); n.innerHTML=h.innerHTML; h.parentNode.replaceChild(n,h); },
+ remove2(){ const u=testSurface.querySelector("ul.skills"); u.removeChild(u.lastElementChild); u.removeChild(u.lastElementChild); },
+ second(){ const p=document.createElement("p"); p.textContent="둘째 최상위 요소"; testSurface.appendChild(p); }
+};
+const NAMES={text:"텍스트 수정",prop:"속성 변경",append:"자식 추가",remove1:"자식 1개 삭제",tag:"태그 교체 h3→h1",remove2:"자식 2개 삭제",second:"최상위 2개 만들기"};
+document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{
+  if(!testSurface.firstElementChild) return;
+  PRE[b.dataset.p](); syncCode(); patch(NAMES[b.dataset.p]);
+});
+document.addEventListener("keydown",e=>{
+  if(e.target.closest("textarea,[contenteditable]")&&!(e.ctrlKey&&e.key==="Enter")) return;
+  if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();patch();}
+  else if(e.key==="ArrowLeft"&&e.altKey){e.preventDefault();travel(-1);}
+  else if(e.key==="ArrowRight"&&e.altKey){e.preventDefault();travel(1);}
+});
+init();
+
+/* ---- 4절 ---- */
+const h3=actualSurface.querySelector("h3");
+$("h3src").textContent=h3.outerHTML;
+$("h3vn").textContent=JSON.stringify(domToVnode(h3),null,1);
+})();
+</script>
+<script>
+"use strict";
+(function(){
+const { domToVnode } = MiniReactElement, { render } = MiniReactRender, { diff } = MiniReactDiff;
+const E=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const lab=v=>v.type==="TEXT_ELEMENT"?"#text":v.type;
+function tr(o,n,p,out){
+  if(o==null&&n==null)return;
+  if(o==null){out.push(p+" 추가");return;}
+  if(n==null){out.push(p+" 삭제");return;}
+  if(o.type!==n.type){out.push(p+" 교체 "+o.type+"→"+n.type);return;}
+  const ks=new Set([...Object.keys(o.props),...Object.keys(n.props)]),ch=[];
+  ks.forEach(k=>{if(k!=="children"&&!Object.is(o.props[k],n.props[k]))ch.push(k)});
+  if(ch.length)out.push(p+" 속성 "+ch.join(","));
+  const a=o.props.children||[],b=n.props.children||[];
+  for(let i=0;i<Math.max(a.length,b.length);i++)tr(a[i],b[i],p+"/"+lab(b[i]||a[i])+"["+i+"]",out);
+}
+const mk=h=>{const d=document.createElement("div");d.innerHTML=h;return d;};
+
+function fig1(){
+  const root=mk("<h3>김정글 <small>Frontend Engineer</small></h3>").firstChild, st=[];
+  (function walk(n,d){
+    const pad="  ".repeat(d);
+    if(n.nodeType===3){st.push(pad+'글자 노드 "'+n.nodeValue+'" → nodeType 3 이므로 TEXT_ELEMENT');return;}
+    st.push(pad+"<"+n.localName+'> → type "'+n.localName+'", 자식 '+n.childNodes.length+"개를 for 루프로 다시 넘김");
+    n.childNodes.forEach(c=>walk(c,d+1));
+  })(root,0);
+  const n=st.length, v=domToVnode(root);
+  st.push("끝: 위 방문 "+n+"번이 VNode 트리 한 개가 됨\n"+JSON.stringify(v));
+  return st.map((s,i)=>"단계 "+(i+1)+" / "+st.length+"\n"+st.slice(0,i+1).join("\n"));
+}
+function fig2(){
+  const cases=[["텍스트가 바뀜","<p>안녕</p>","<p>반가워</p>"],["태그가 바뀜","<p>안녕</p>","<h1>안녕</h1>"],["자식이 늘어남","<ul><li>A</li></ul>","<ul><li>A</li><li>B</li></ul>"],["자식이 줄어듦(마지막 1개)","<ul><li>A</li><li>B</li></ul>","<ul><li>A</li></ul>"],["속성이 바뀜",'<p class="a">x</p>','<p class="b">x</p>']];
+  return cases.map(([nm,a,b])=>{
+    const box=mk(a), o=domToVnode(box.firstChild), nx=domToVnode(mk(b).firstChild), t=[];
+    tr(o,nx,"/"+lab(o)+"[0]",t);
+    const before=box.firstChild; diff(box,before,o,nx);
+    return "사례: "+nm+"\n이전 "+a+"\n새     "+b+"\ndiff가 손댄 노드: "+t.join(" | ")+"\ndiff 뒤 실제 DOM: "+box.innerHTML+"\n새 HTML과 같음? "+(box.innerHTML===b)+" · 루트 노드 재사용? "+(before===box.firstChild);
+  });
+}
+function fig3(){
+  const h=["초기"]; let i=0;
+  const st=["처음\nhistory = ["+h.join(", ")+"]\nhistoryIndex = 0"];
+  const patch=nm=>{h.splice(i+1);h.push(nm);i=h.length-1;};
+  patch("A"); st.push("Patch A\nhistory = ["+h.join(", ")+"]\nhistoryIndex = "+i);
+  patch("B"); st.push("Patch B\nhistory = ["+h.join(", ")+"]\nhistoryIndex = "+i);
+  i-=1;       st.push("뒤로가기\nhistory = ["+h.join(", ")+"]\nhistoryIndex = "+i+"\n(B는 아직 배열에 있어서 앞으로가기로 갈 수 있음)");
+  patch("C"); st.push("Patch C\nhistory = ["+h.join(", ")+"]\nhistoryIndex = "+i+"\nsplice(historyIndex + 1)이 B를 잘라 냈으므로 B로 갈 길이 없음");
+  return st;
+}
+function fig4(){
+  const r=(a,b)=>{const box=mk(a),o=domToVnode(box.firstChild),n=domToVnode(mk(b).firstChild),before=box.firstChild;diff(box,before,o,n);return before===box.firstChild;};
+  return ["diff 앞뒤에 루트 DOM 참조를 견줍니다 (rootBefore === rootAfter)",
+  "사례 1: article 안의 글자만 바뀜\nrootBefore === rootAfter → "+r("<article><p>a</p></article>","<article><p>b</p></article>")+" (보존)",
+  "사례 2: 루트가 article에서 section으로 바뀜\nrootBefore === rootAfter → "+r("<article><p>a</p></article>","<section><p>a</p></section>")+" (교체)",
+  "사례 3: 루트는 같고 자식 p가 h1으로 바뀜\nrootBefore === rootAfter → "+r("<article><p>a</p></article>","<article><h1>a</h1></article>")+" (루트는 보존, 자식은 교체)\n배지는 루트만 보므로 자식이 몇 개 교체됐는지 알려 주지 않음"];
+}
+const L=[
+{t:"레슨 1 — domToVnode는 글자와 요소를 갈라서 읽는다",loc:"element.js 46~53행, 75~78행",
+ src:"if (domNode.nodeType === 3) {\n  ...\n  return isFormattingWhitespace(text) ? null : createTextElement(text);\n}\nif (domNode.nodeType !== 1) return null;",
+ ko:"<span class='s'>domToVnode</span>가 <span class='o'>DOM 노드의 nodeType</span>을 보고, 3이면 글자 VNode를, 1이면 요소 VNode를 만들고, 그 밖이면 null을 돌려준다.",
+ th:[["chunk","if (domNode.nodeType === 3)","노드 종류가 글자(text node)이면"],["chunk","isFormattingWhitespace(text) ? null : createTextElement(text)","줄바꿈뿐인 공백은 버리고, 아니면 글자 VNode로"],["chunk","if (domNode.nodeType !== 1) return null","요소(element)도 글자도 아니면(주석 등) 버림"],["반응","읽는 함수가 자기 자신을 또 부르네!"],["예상","h3 안에 small이 있으니 방문이 4번쯤 나오겠지?"],["깨달음","오른쪽 단계 수를 보면 실제로 방문이 4번이다 — 요소, 글자, 요소, 그 안의 글자라서 VNode 트리 모양이 DOM 트리 모양과 같구나!"],["의심","공백뿐인 글자를 왜 버리지? → 38~40행 isFormattingWhitespace: 줄바꿈 들여쓰기가 자식 위치를 밀기 때문이다."],["뉘앙스","nodeType 3은 \"글자\", 1은 \"요소\"라는 DOM 표준의 약속이지 이 코드가 정한 값이 아니다."]],fig:fig1},
+{t:"레슨 2 — diff는 같은 위치끼리 네 갈래로 가른다",loc:"diff.js 80~106행",
+ src:"if (oldVNode == null) return render(newVNode, parentDom);\nif (newVNode == null) { parentDom.removeChild(currentDom); ... }\nif (oldVNode.type !== newVNode.type) { ... parentDom.replaceChild(newDom, currentDom); }\nupdateDom(currentDom, oldVNode.props, newVNode.props);",
+ ko:"<span class='s'>diff</span>가 <span class='o'>old·new 두 VNode</span>를 견주어 추가 · 삭제 · 교체 · 속성 수정 중 하나를 고르고, 자식은 같은 위치끼리 다시 diff에 넘긴다.",
+ th:[["chunk","oldVNode == null","옛것이 없으면 → 새로 추가"],["chunk","newVNode == null","새것이 없으면 → 지움"],["chunk","oldVNode.type !== newVNode.type","태그 이름이 다르면 → 통째로 교체"],["chunk","updateDom(...)","태그가 같으면 → 바뀐 속성만 고침"],["예상","글자만 바뀌면 노드는 그대로이고 값만 바뀌겠지?"],["깨달음","사례 1과 5에서 루트 노드 재사용이 true다 — 태그가 같으면 교체하지 않고 속성만 고치니까 실제 DOM 객체가 살아남는구나!"],["확인","사례 4는 마지막 하나만 지워서 성공한다 — 5절의 2개 삭제 실패와 짝으로 봐야 한다."],["해킹","diff를 읽을 때는 null 두 가지 → type 다름 → type 같음 순서로 가지를 친다."]],fig:fig2},
+{t:"레슨 3 — 뒤로 간 뒤 Patch하면 앞의 기록이 사라진다",loc:"phase1_playground.html 219~222행",
+ src:"currentVNode = nextVNode;\nhistory.splice(historyIndex + 1);\nhistory.push(nextVNode);\nhistoryIndex = history.length - 1;",
+ ko:"<span class='s'>patchFromTestArea</span>가 <span class='o'>historyIndex 뒤쪽 기록</span>을 <code>splice</code>로 지운 다음 새 VNode를 <code>push</code>한다.",
+ th:[["chunk","history.splice(historyIndex + 1)","현재 위치 바로 뒤부터 끝까지 잘라 냄"],["chunk","history.push(nextVNode)","그 자리에 새 기록을 붙임"],["반응","브라우저 뒤로가기와 같은 규칙이네!"],["예상","A, B를 쌓고 뒤로 간 뒤 C를 하면 B가 남을까?"],["깨달음","오른쪽 마지막 단계에서 B가 사라졌다 — 갈래가 하나뿐인 직선 기록이라서 새 길을 만들면 옛 앞길은 버려지는구나!"],["의심","VNode를 Object.freeze로 고정하지 않는데 안전한가? → 이 코드는 저장한 VNode를 다시 고치지 않는다는 약속에 기댄다."],["결정","버려진 기록을 살리려면 가지(branch)를 가진 구조가 따로 필요하다."]],fig:fig3},
+{t:"레슨 4 — 루트 보존 배지는 루트만 본다",loc:"phase1_playground.html 의 patchFromTestArea 안 rootBefore / rootAfter",
+ src:"const rootBefore = actualSurface.firstElementChild;\nactualRoot = diff(actualSurface, actualRoot, currentVNode, nextVNode);\nconst rootAfter = actualSurface.firstElementChild;\nconst isRootReused = (rootBefore === rootAfter);",
+ ko:"<span class='s'>patchFromTestArea</span>가 <span class='o'>diff 전후의 루트 DOM 참조</span>가 같은지 <code>===</code>로 견주어 배지 문구를 정한다.",
+ th:[["chunk","rootBefore === rootAfter","diff 앞뒤에 같은 객체인가"],["반응","배지가 초록이면 다 보존됐다는 말이겠지?"],["예상","루트가 같아도 자식은 교체될 수 있겠지?"],["깨달음","사례 3이 true인데 자식 p는 h1으로 교체됐다 — 배지는 루트 하나의 참조만 보니까 전체 최소 연산의 증거가 될 수 없구나!"],["의심","자식 보존 여부는 어디서 알 수 있나? → 3절 diff 추적 목록의 \"교체\" 줄"]],fig:fig4}
+];
+const root=document.getElementById("lessons");
+L.forEach(l=>{
+  const steps=l.fig(); let k=0;
+  const thHtml=l.th.map((x,i)=>{
+    const [key,a,b]=x;
+    if(key==="chunk")return '<div><span class="ck mono">['+E(a)+'] <span class="note">('+E(b)+')</span></span></div>';
+    const dent=l.th[i-1]&&l.th[i-1][0]==="chunk"&&["반응","예상","깨달음","의심","확인"].includes(key)?" dent":"";
+    return '<div class="k-'+key+dent+'"><b>'+(key==="해킹"?"사고뚫기":key==="뉘앙스"?"놓치기 쉬운 뉘앙스":"뇌의 "+key)+':</b> '+E(a)+'</div>';
+  }).join("");
+  const art=document.createElement("article"); art.className="les";
+  art.innerHTML='<h3>'+l.t+'</h3><div class="lesg"><div><div class="cmc"><div class="loc">'+l.loc+'</div><pre>'+E(l.src)+'</pre><div class="ko">'+l.ko+'</div></div><div class="think">'+thHtml+'</div></div>'+
+   '<div class="fig"><div class="btns"><button data-a="0">처음</button><button data-a="-1">◀ 이전</button><button class="pri" data-a="1">다음 ▶</button><b class="pos"></b></div><div class="out" aria-live="polite"></div></div></div>';
+  const out=art.querySelector(".out"), pos=art.querySelector(".pos");
+  const draw=()=>{out.textContent=steps[k];pos.textContent="단계 "+(k+1)+" / "+steps.length;};
+  art.querySelector(".fig").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const a=+b.dataset.a;k=a===0?0:Math.max(0,Math.min(steps.length-1,k+a));draw();});
+  draw(); root.appendChild(art);
+});
+
+const C=[
+["조건 1: 글자 노드 검사","element.js 46행 · domToVnode","domNode.nodeType === 3","이 노드가 글자야?","참 → 47~48행에서 글자 VNode(또는 null)를 돌려줌 / 거짓 → 요소 검사(50행)로 넘어감","글자를 요소로 읽다가 localName이 비어 type이 빈 문자열이 됨 → 53행에서 null","노드 종류가 글자이면 글자 VNode로 바꾼다.","반응","요소와 글자를 가르는 첫 관문이네!","if (domNode.nodeType === 3) {"],
+["조건 2: 서식 공백 검사","element.js 38~40행 · 48행에서 사용","/^\\s*$/.test(text) && text.includes(\"\\n\")","줄바꿈만 있는 글자야?","참 → null이라 children에 안 들어감 / 거짓 → 글자 VNode가 됨","들여쓰기 줄바꿈이 자식 한 칸을 차지 → diff의 위치 비교가 한 칸씩 밀림","공백뿐이고 줄바꿈이 있으면 서식용으로 보고 버린다.","깨달음","위치(index)로 견주는 diff 때문에 서식 공백을 미리 걷어 내는구나!","return /^\\s*$/.test(text) && text.includes(\"\\n\");"],
+["조건 3: 옛것 없음 검사","diff.js 80행","oldVNode == null","옛 노드가 없어?","참 → render(newVNode, parentDom)로 새로 붙임 / 거짓 → 다음 조건","새 자식이 늘어났는데 붙이지 못함 → 화면에 안 나타남","old가 없으면 new를 새로 만들어 붙인다.","예상","자식 추가는 여기로 오겠지!","if (oldVNode == null) {"],
+["조건 4: 새것 없음 검사","diff.js 83행","newVNode == null","새 노드가 없어?","참 → parentDom.removeChild(currentDom) / 거짓 → 다음 조건","지운 자식이 실제 DOM에 남음 → 두 영역 내용이 갈라짐","new가 없으면 현재 DOM 노드를 지운다.","의심","여러 개 지울 때 childNodes 인덱스가 밀리는 곳이 여기야 → 5절","if (newVNode == null) {"],
+["조건 5: 태그 불일치 검사","diff.js 97행","oldVNode.type !== newVNode.type","태그 이름이 달라?","참 → 새 DOM을 만들어 replaceChild / 거짓 → updateDom으로 속성만 고침","h3를 h1로 바꿀 때 속성만 고치면 태그는 h3로 남음","type이 다르면 노드를 통째로 교체한다.","깨달음","type이 같을 때만 노드를 재사용할 수 있구나!","if (oldVNode.type !== newVNode.type) {"],
+["조건 6: 바뀐 속성만 고침","diff.js 66행 · updateDom","!Object.is(oldValue, newValue)","값이 달라졌어?","참 → setProp 호출 / 거짓 → 건드리지 않음","같은 값까지 매번 다시 써서 불필요한 DOM 변경이 늘어남","옛 값과 새 값이 다를 때만 속성을 쓴다.","반응","MutationObserver 건수가 작은 이유가 이 한 줄이네!","if (!Object.is(oldValue, newValue)) {"],
+["조건 7: 변경 없음 검사","phase1_playground.html 195행","sameVNode(currentVNode, nextVNode)","둘이 똑같아?","참 → diff를 부르지 않고 \"변경 없음\"으로 끝 / 거짓 → diff 실행, history에 push","같은 상태가 history에 계속 쌓여 뒤로가기가 변화 없는 칸을 지남","JSON.stringify 결과가 같으면 Patch를 건너뛴다.","확인","3절 \"최상위 2개 만들기\"가 여기서 걸러졌어 — firstElementChild만 읽었으니까!","if (sameVNode(currentVNode, nextVNode)) {"],
+["조건 8: 기록 범위 검사","phase1_playground.html 233행 · travel","targetIndex < 0 || targetIndex >= history.length","기록 끝을 넘었어?","참 → 아무것도 안 하고 return / 거짓 → 목표 VNode로 diff","history[-1]은 undefined라 diff가 현재 DOM을 지워 버림","목표 위치가 배열 밖이면 이동하지 않는다.","결정","버튼 disabled와 이 줄이 이중 안전장치구나!","if (targetIndex < 0 || targetIndex >= history.length) return;"]
+];
+const cr=document.getElementById("conds");
+C.forEach(c=>{
+  const d=document.createElement("div"); d.className="cond";
+  d.innerHTML='<h4>'+E(c[0])+'</h4><div class="row"><b>① 1초 컷</b> '+E(c[3])+'</div><div class="row"><b>② 참 · 거짓</b> '+E(c[4])+'</div><div class="row"><b>③ 없으면</b> '+E(c[5])+'</div><div class="row"><b>④ 바로 읽기</b> '+E(c[6])+'</div><div class="row"><b>⑤ 쓰인 곳</b> '+E(c[1])+'</div><div class="row k-'+c[7]+'"><b>⑥ 뇌의 '+c[7]+':</b> '+E(c[8])+'</div><pre>조건식: '+E(c[2])+'\n원문 줄: '+E(c[9])+'</pre>';
+  cr.appendChild(d);
+});
+})();
+
+</script>
+<script>
+"use strict";
+(function(){
+const E=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const sp=(c,s)=>'<span class="'+c+'">'+E(s)+'</span>';
+function hlHtml(src){
+  let out="", i=0;
+  const re=/<\/?[A-Za-z][^>]*>/g; let m;
+  while((m=re.exec(src))){
+    out+=E(src.slice(i,m.index)); i=m.index+m[0].length;
+    const mm=m[0].match(/^(<\/?)([A-Za-z][\w-]*)([\s\S]*?)(\/?>)$/);
+    out+=sp("c-p",mm[1])+sp("c-tag",mm[2]);
+    const attrs=mm[3];
+    out+=attrs.replace(/(\s+)([^\s=]+)(?:(=)("[^"]*"|'[^']*'|[^\s"']+))?/g,(x,ws,n,eq,v)=>E(ws)+sp("c-attr",n)+(eq?sp("c-p",eq)+sp("c-val",v):""));
+    out+=sp("c-p",mm[4]);
+  }
+  return out+E(src.slice(i));
+}
+function hlJson(src){
+  return E(src).replace(/(&quot;|")/g,'"').replace(/"([^"\n]*)"(\s*:)?/g,(x,s,colon)=>colon?sp2("c-attr",'"'+s+'"')+sp2("c-p",colon):sp2("c-val",'"'+s+'"'))
+   .replace(/\b(-?\d+(?:\.\d+)?|true|false|null)\b(?![^<]*>)/g,(x)=>sp2("c-num",x));
+}
+function sp2(c,s){return '<span class="'+c+'">'+s+'</span>';}
+const KW=/^(if|else|return|const|let|var|function|new|typeof|for|of|while|try|catch|throw|null|true|false|undefined|in|continue|break)$/;
+function hlJs(src){
+  const re=/(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\/\^[^\n]*?\/[a-z]*(?=\.))|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)(\s*\()?|([\s\S])/g;
+  let out="",m;
+  while((m=re.exec(src))){
+    if(m[1]) out+=sp("c-cm",m[1]);
+    else if(m[2]) out+=sp("c-val",m[2]);
+    else if(m[3]) out+=sp("c-val",m[3]);
+    else if(m[4]) out+=sp("c-num",m[4]);
+    else if(m[5]){
+      if(KW.test(m[5])) out+=sp("c-kw",m[5])+E(m[6]||"");
+      else if(m[6]) out+=sp("c-fn",m[5])+E(m[6]);
+      else out+=E(m[5]);
+    }
+    else out+=/[{}()\[\];,.]/.test(m[7])?sp("c-p",m[7]):E(m[7]);
+  }
+  return out;
+}
+const MODES={html:hlHtml,json:hlJson,js:hlJs};
+function paintPre(el,mode){ const t=el.dataset.raw||el.textContent; el.dataset.raw=t; el.innerHTML=MODES[mode](t); el.classList.add("hl-on"); }
+
+/* 코드 창 */
+const code=document.getElementById("code"), under=document.getElementById("codeHl");
+function paint(){ under.innerHTML=hlHtml(code.value)+"\n"; under.scrollTop=code.scrollTop; under.scrollLeft=code.scrollLeft; }
+window.__paint=paint;
+code.addEventListener("input",paint);
+code.addEventListener("scroll",()=>{under.scrollTop=code.scrollTop;under.scrollLeft=code.scrollLeft;});
+new ResizeObserver(()=>{under.style.height=code.offsetHeight+"px";}).observe(code);
+paint();
+
+/* 4절 HTML·JSON */
+paintPre(document.getElementById("h3src"),"html");
+paintPre(document.getElementById("h3vn"),"json");
+/* 레슨 코드 카드, 조건식 원문 줄 */
+document.querySelectorAll(".cmc pre").forEach(p=>paintPre(p,"js"));
+document.querySelectorAll(".cond pre").forEach(p=>{
+  const lines=(p.dataset.raw||p.textContent).split("\n"); p.dataset.raw=lines.join("\n");
+  p.innerHTML=lines.map(l=>{const k=l.indexOf(": "); return E(l.slice(0,k+2))+hlJs(l.slice(k+2));}).join("\n");
+});
+/* 3절 방금 일어난 일의 code 조각은 CSS로 이미 구분 */
+})();
+
+</script>
+<script>
+(function(){
+var b=document.getElementById("copyPrompt"),m=document.getElementById("copyMsg"),pre=document.getElementById("promptText");
+function legacy(){var ta=document.createElement("textarea");ta.value=pre.textContent;ta.style.cssText="position:fixed;left:-9999px;top:0";document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand("copy");}catch(e){}document.body.removeChild(ta);return ok;}
+function select(){var r=document.createRange();r.selectNodeContents(pre);var x=getSelection();x.removeAllRanges();x.addRange(r);}
+b.addEventListener("click",function(){
+  var s=pre.textContent;
+  var p=(navigator.clipboard&&navigator.clipboard.writeText)?navigator.clipboard.writeText(s):Promise.reject();
+  p.then(function(){m.textContent="복사했어요.";},function(){
+    if(legacy()){m.textContent="복사했어요(대체 방식).";}
+    else{select();m.textContent="자동 복사가 막혀 지시문을 선택해 뒀어요. Ctrl+C로 복사하세요.";}
+  });
+});
+})();
+</script>
+</body>
+</html>

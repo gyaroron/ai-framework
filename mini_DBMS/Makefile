@@ -38,11 +38,11 @@ transaction.o: src/transaction.c include/transaction.h include/wal.h \
 main.o: src/main.c include/server_bridge.h include/transaction.h
 	$(CC) $(CFLAGS) -c src/main.c -o $@
 
-server_bridge.o: src/server_bridge.c include/server_bridge.h ../resp.h
-	$(CC) $(CFLAGS) -I.. -c src/server_bridge.c -o $@
+server_bridge.o: src/server_bridge.c include/server_bridge.h ../mini_Redis/resp.h
+	$(CC) $(CFLAGS) -I../mini_Redis -c src/server_bridge.c -o $@
 
-$(SERVER): $(SERVER_OBJECTS) $(LIBRARY) ../resp.c ../resp.h
-	$(CC) $(CFLAGS) -I.. $(SERVER_OBJECTS) ../resp.c $(LIBRARY) -o $@
+$(SERVER): $(SERVER_OBJECTS) $(LIBRARY) ../mini_Redis/resp.c ../mini_Redis/resp.h
+	$(CC) $(CFLAGS) -I../mini_Redis $(SERVER_OBJECTS) ../mini_Redis/resp.c $(LIBRARY) -o $@
 
 $(PAGER_TEST): src/pager.c tests/test_pager.c include/pager.h include/page.h
 	$(CC) $(CFLAGS) src/pager.c tests/test_pager.c -o $@

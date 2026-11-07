@@ -142,7 +142,10 @@ Page *buffer_pool_get_page(BufferPool *pool, uint32_t page_no)
         pager_write_page(pool->pager, frame->page_no, &frame->page) != 0) {
         return NULL;
     }
+    /* The old page is now clean; a failed read may overwrite only part of it. */
+    frame->is_dirty = 0;
     if (pager_read_page(pool->pager, page_no, &frame->page) != 0) {
+        frame->is_valid = 0;
         return NULL;
     }
 

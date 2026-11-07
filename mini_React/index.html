@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mini React · Redis · DBMS 통합 데모</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, sans-serif; }
+      body { max-width: 48rem; margin: 3rem auto; padding: 0 1.25rem; color: #202436; }
+      #root { padding: 1.5rem; border: 1px solid #d9deeb; border-radius: 1rem; }
+      li { margin: .4rem 0; }
+      #cache-status { color: #176b43; }
+      label, input, button { display: block; margin: .75rem 0; }
+      input { box-sizing: border-box; width: 100%; padding: .6rem; }
+      button { display: inline-block; margin-right: .5rem; padding: .55rem .9rem; }
+    </style>
+  </head>
+  <body>
+    <nav style="display:flex; gap:1rem; margin-bottom:1.5rem; padding-bottom:.8rem; border-bottom:2px solid #e2e8f0; font-size:.95rem;" aria-label="메인 탐색">
+      <a href="./phase1_playground.html" style="color:#3b82f6; text-decoration:none; padding:.3rem .6rem; border-radius:.4rem;">과제 1: Virtual DOM · Diff · History 플레이그라운드</a>
+      <a href="./index.html" style="color:#1e40af; background:#e0e7ff; font-weight:700; text-decoration:none; padding:.3rem .6rem; border-radius:.4rem;">과제 3: 3계층 통합 데모 (Gateway / Redis / DBMS)</a>
+    </nav>
+    <div id="root" aria-label="Mini React 렌더링 결과"></div>
+
+    <script src="./element.js"></script>
+    <script src="./hook.js"></script>
+    <script src="./component.js"></script>
+    <script src="./render.js"></script>
+    <script src="./diff.js"></script>
+    <script src="./app.js"></script>
+    <script>
+      "use strict";
+
+      const gateway = new URLSearchParams(location.search).get("gateway")
+        || "http://localhost:3000/api";
+      MiniReactRender.render(
+        MiniReactElement.createElement(MiniReactApp.App, { apiBase: gateway }),
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>element.js 한 줄씩 보기</title>
+<style>
+:root{
+  --bg:#FAFAF7;--card:#FFFFFF;--ink:#1B1F24;--sub:#5B6470;--line:#D9DDE3;--code:#F3F4F6;
+  --vn:#2458C6;--dom:#9A5B00;--hist:#0B6B48;--eng:#0E7490;--bad:#C62828;--test:#7C3AED;--now:#FFF3A3;--ring:#D6336C;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151A;--card:#1A1F26;--ink:#E7EAEE;--sub:#9AA4B1;--line:#2F3742;--code:#232A33;
+  --vn:#6EA2FF;--dom:#F0A94A;--hist:#4CD39A;--eng:#3CC7E3;--bad:#FF7B72;--test:#B39BFF;--now:#5B5200;--ring:#FF7AA8;}}
+:root[data-theme="dark"]{
+  --bg:#12151A;--card:#1A1F26;--ink:#E7EAEE;--sub:#9AA4B1;--line:#2F3742;--code:#232A33;
+  --vn:#6EA2FF;--dom:#F0A94A;--hist:#4CD39A;--eng:#3CC7E3;--bad:#FF7B72;--test:#B39BFF;--now:#5B5200;--ring:#FF7AA8;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:25px;margin:16px 0 4px}h2{font-size:20px;margin:26px 0 8px;border-bottom:2px solid var(--line);padding-bottom:4px}
+.sub,.note{color:var(--sub);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;min-width:0}
+code,pre,.mono{font-family:Consolas,"Cascadia Mono",monospace}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.92em}
+.s{text-decoration:underline;text-decoration-color:var(--vn);text-underline-offset:3px;font-weight:600}
+.o{text-decoration:underline;text-decoration-color:var(--dom);text-underline-offset:3px;font-weight:600}
+.vn{color:var(--vn);font-weight:600}.dom{color:var(--dom);font-weight:600}.hs{color:var(--hist);font-weight:600}.en{color:var(--eng);font-weight:600}.bad{color:var(--bad);font-weight:600}.ts{color:var(--test);font-weight:600}
+.now{background:var(--now)}
+button,select{font:inherit;font-size:14px;padding:4px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;cursor:pointer}
+button:hover{border-color:var(--vn)}button[disabled]{opacity:.4;cursor:default}
+button.pri{background:var(--vn);color:#fff;border-color:var(--vn)}button.on{outline:2px solid var(--vn)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}th{background:var(--code)}
+.tw{overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}}
+.codebox{border:1px solid var(--line);border-radius:8px;background:var(--code);height:640px;overflow:auto;font:13px/1.55 Consolas,"Cascadia Mono",monospace;position:relative}
+.ln{display:flex;white-space:pre;padding-right:10px}
+.ln .n{flex:0 0 3.2em;text-align:right;padding-right:10px;color:var(--sub);user-select:none}
+.ln.hit{background:var(--now);box-shadow:inset 4px 0 0 var(--ring)}
+.ln.ran{background:rgba(17,132,90,.08)}
+.k{color:var(--test);font-weight:600}.f{color:var(--vn)}.st{color:var(--hist)}.cm{color:var(--sub);font-style:italic}.nu{color:var(--dom)}
+.step h3{margin:0 0 4px;font-size:17px}.step .why{margin:4px 0;font-size:15px}
+.chip{display:inline-block;font:13px Consolas,monospace;background:var(--code);border-radius:5px;padding:1px 7px;margin:2px 4px 2px 0;max-width:100%;overflow-x:auto;vertical-align:top}
+.tag{display:inline-block;font-size:12px;border:1px solid currentColor;border-radius:4px;padding:0 6px;margin-right:6px}
+.t-호출{color:var(--vn)}.t-결과{color:var(--hist)}.t-반환{color:var(--test)}.t-분기{color:var(--dom)}.t-실행{color:var(--sub)}
+.frame{border:2px solid var(--vn);border-radius:8px;padding:6px 8px;margin:6px 0 0;background:var(--card)}
+.frame>b{font-size:14px;color:var(--vn)}.frame.glob{border-color:var(--sub)}.frame.glob>b{color:var(--sub)}
+.frame table{margin:4px 0;font-size:13px}.frame td,.frame th{padding:2px 6px}.frame td.v{font-family:Consolas,monospace;word-break:break-all}
+tr.chg td{background:var(--now)}
+.log{background:#0D1117;color:#C9D1D9;border-radius:6px;padding:8px 10px;font:12.5px/1.55 Consolas,monospace;height:200px;overflow:auto;white-space:pre-wrap}
+.log .a{color:#79C0FF}.log .b{color:#7EE787}.log .c{color:#D2A8FF}.log .d{color:#FFA657}
+.cond{border-left:4px solid var(--dom);background:var(--code);border-radius:6px;padding:6px 10px;font-size:14.5px}
+.dombox{font:12.5px/1.5 Consolas,monospace;white-space:pre;overflow-x:auto;background:var(--code);border-radius:6px;padding:6px 8px}
+.dombox .chg{background:var(--now)}
+.ok{color:var(--hist);font-weight:700}
+details{margin:6px 0}summary{cursor:pointer;font-weight:600}
+input[type=range]{width:min(260px,100%)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>element.js 한 줄씩 보기 <span class="note">(mini_react/element.js, 136줄 전체)</span></h1>
+<p class="sub">출처: <code>mini_react/element.js</code> 현재 파일 136줄을 그대로 읽어 왔어요. 아래 코드 창의 줄 번호가 이 파일의 줄 번호와 같아요. 한 단계 = 코드 한 줄이고, 함수를 부르는 줄은 "호출"과 "결과" 두 단계예요. 길이는 비율이 아니에요.</p>
+
+<div class="card legend">
+  <span><b class="vn">파랑</b> 함수 호출·호출 스택</span>
+  <span><b class="dom">주황</b> 분기(if·for 조건)</span>
+  <span><b class="hs">초록</b> 결과(호출한 줄로 돌아옴)</span>
+  <span><b class="ts">보라</b> 반환(return)</span>
+  <span><span class="now">노랑</span> 지금 줄 · 방금 바뀐 값</span>
+  <span>분홍 왼쪽 띠 = 지금 실행하는 줄</span>
+  <span>밑줄 <span class="s">주체</span> · <span class="o">대상</span></span>
+</div>
+
+<details class="card" id="how">
+<summary>이 페이지가 줄을 따라가는 방법 (눌러서 열기)</summary>
+<p>이 페이지는 <code>element.js</code>를 한 줄씩 멈추며 실행하는 디버거가 아니에요. 같은 줄 구조를 그대로 옮기고 줄마다 기록 코드를 끼운 <b>추적용 복사본</b>을 브라우저에서 진짜 DOM 노드로 실행해 단계를 만들어요. 그래서 단계마다 보이는 값은 손으로 쓴 값이 아니라 그 실행에서 나온 값이에요.</p>
+<p><b>검증:</b> 시나리오마다 추적용 복사본의 결과를 진짜 <code>MiniReactElement</code>(같은 파일을 이 페이지에 붙여 실행)의 결과와 비교해 아래 "검증" 칸에 표시해요. 같지 않으면 빨갛게 표시돼요.</p>
+<p><b>한계:</b> 복사본이므로 진짜 파일이 바뀌면 이 페이지의 추적 코드는 따로 고쳐야 해요(미반영 시 검증 칸이 빨갛게 변해 알려 줘요).</p>
+</details>
+
+<h2>1. 파일에서 나오는 함수 한눈에</h2>
+<div class="tw"><table>
+<tr><th>함수</th><th>하는 일</th><th>줄</th></tr>
+<tr><td class="mono">createTextElement</td><td>글자 하나를 <code>{ type: "TEXT_ELEMENT", props }</code>로 감싼다</td><td>6~14</td></tr>
+<tr><td class="mono">normalizeChild</td><td>문자열·숫자면 글자 VNode로, 아니면 그대로 돌려준다</td><td>16~21</td></tr>
+<tr><td class="mono">createElement</td><td>type·props·자식들로 VNode를 만든다(자식을 펴고 거르고 정리)</td><td>23~36</td></tr>
+<tr><td class="mono">isFormattingWhitespace</td><td>줄바꿈 있는 공백뿐인 글자인지 판정한다</td><td>38~40</td></tr>
+<tr><td class="mono">domToVnode</td><td>DOM 노드 하나를 VNode로 바꾼다(자식은 재귀)</td><td>42~84</td></tr>
+<tr><td class="mono">domToVnodeList</td><td>컨테이너의 자식들을 VNode 배열로 바꾼다</td><td>86~97</td></tr>
+<tr><td class="mono">normalizeDom</td><td>진짜 DOM을 직접 정리한다(서식 공백·script·on* 제거)</td><td>99~123</td></tr>
+<tr><td class="mono">api · 내보내기</td><td>위 함수들을 <code>MiniReactElement</code>로 내보낸다</td><td>125~135</td></tr>
+</table></div>
+<p class="note">표 아래 설명: <code>domToVnode</code>는 DOM을 <b>읽기만</b> 하고, <code>normalizeDom</code>은 DOM을 <b>직접 바꿔요</b>. 둘은 이름이 비슷해 헷갈리기 쉬워요. 줄 71~73의 <code>data-key</code> → <code>key</code> 복사와 줄 86~97의 <code>domToVnodeList</code>는 이전 버전에는 없던 코드예요(이전 지도 페이지의 element.js 줄 번호 중 70행 뒤쪽은 이 파일과 달라요).</p>
+
+<h2>2. 단계별 시각화</h2>
+<div class="btns" id="fnTabs" role="tablist" aria-label="함수 선택"></div>
+<div class="btns" id="scBtns" aria-label="시나리오 선택"></div>
+<div class="card" id="scInfo"></div>
+
+<div class="btns">
+  <button id="bFirst">처음</button>
+  <button id="bPrev">◀ 이전</button>
+  <button id="bNext" class="pri">다음 ▶</button>
+  <b id="pos" aria-live="polite"></b>
+  <label><input type="checkbox" id="follow" checked> 코드 창이 줄을 따라감</label>
+</div>
+<div class="btns">
+  <button id="bPlay">▶ 자동 재생</button>
+  <label>속도 <select id="speed"><option value="1200">느리게</option><option value="700" selected>보통</option><option value="300">빠르게</option></select></label>
+  <label>단계 <input type="range" id="slider" min="0" max="0" value="0"></label>
+  <label>이동 <select id="jump"></select></label>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="note" id="capt">element.js 전체 (줄 번호 = 파일 줄 번호). 초록 옅은 줄 = 이 시나리오에서 이미 지나간 줄.</div>
+    <div class="codebox" id="code" tabindex="0" aria-label="element.js 소스"></div>
+  </div>
+  <div>
+    <div class="card step" id="stepCard" aria-live="polite"></div>
+    <div class="card"><b>입력과 출력</b><div id="io"></div></div>
+    <div class="card"><b>호출 스택 · 변수</b> <span class="note">(바깥 = 먼저 부른 함수, 안쪽 = 부른 함수. 바뀐 값은 노랑)</span><div id="stack"></div></div>
+    <div class="card" id="condCard" style="display:none"><b>이 줄의 조건 읽기</b><div class="cond" id="cond"></div></div>
+    <div class="card"><b>이 줄이 쓰는 정의</b><div id="defs" class="note"></div></div>
+    <div class="card" id="domCard" style="display:none"><b>진짜 DOM 상태</b> <span class="note">(normalizeDom이 지금 바꾸는 트리)</span><div class="dombox" id="dombox"></div></div>
+  </div>
+</div>
+<div class="card"><b>실행 로그</b> <span class="note">(#단계 [종류] 내용, 최근 120줄)</span><div class="log" id="log"></div></div>
+
+<h2>3. 자동 검사 결과</h2>
+<div class="card" id="checks"></div>
+
+<h2>끝. 정리</h2>
+<h3>헷갈리는 짝</h3>
+<div class="tw"><table>
+<tr><th>짝</th><th>차이</th><th>이 파일의 예</th></tr>
+<tr><td>domToVnode / normalizeDom</td><td>앞은 DOM을 읽어 새 객체를 만들고, 뒤는 진짜 DOM 노드를 직접 지우거나 속성을 뗀다.</td><td>42행 대 99행</td></tr>
+<tr><td>domToVnode / domToVnodeList</td><td>앞은 노드 하나를 VNode 하나로, 뒤는 컨테이너의 자식 여러 개를 VNode 배열로 바꾼다.</td><td>42행 대 86행</td></tr>
+<tr><td>createElement / domToVnode</td><td>앞은 코드에서 VNode를 직접 조립하고, 뒤는 DOM에서 VNode를 읽어 온다. 결과 모양은 같다.</td><td>23행 대 42행</td></tr>
+<tr><td>props.key / data-key</td><td>VNode에 쓰는 이름은 <code>key</code>이고, HTML에서는 <code>data-key</code> 속성으로 적어 두면 71~73행이 복사해 준다.</td><td>71~73행</td></tr>
+</table></div>
+<h3>한 문장씩 외우기</h3>
+<ol>
+<li><span class="s">createTextElement</span>가 <span class="o">글자</span>를 <code>{ type: "TEXT_ELEMENT", props: { nodeValue, children: [] } }</code>로 감싼다.</li>
+<li><span class="s">domToVnode</span>가 <span class="o">nodeType</span>을 보고 3이면 글자 VNode, 1이면 요소 VNode를 만들고 그 밖은 null을 돌려준다.</li>
+<li><span class="s">domToVnode</span>가 <span class="o">자식 노드마다</span> 자기 자신을 다시 불러 트리 모양을 그대로 옮긴다.</li>
+<li><span class="s">isFormattingWhitespace</span>가 <span class="o">줄바꿈 있는 공백뿐인 글자</span>를 참으로 판정해 호출한 쪽이 버리게 한다.</li>
+<li><span class="s">normalizeDom</span>이 <span class="o">서식 공백·script·주석</span>을 진짜 DOM에서 지우고 <code>on*</code> 속성을 뗀다.</li>
+</ol>
+<h3>출처</h3>
+<p class="note">mini_react/element.js (136줄) 전체. 외부 검색 없음. 시나리오의 HTML 조각은 이 페이지가 만든 예시(교재 밖)이고, 결과 값은 모두 실행해서 얻었어요.</p>
+</main>
+
+<script>(function () {
+"use strict";
+
+const TEXT_ELEMENT = "TEXT_ELEMENT";
+
+function createTextElement(text) {
+  return {
+    type: TEXT_ELEMENT,
+    props: {
+      nodeValue: String(text),
+      children: [],
+    },
+  };
+}
+
+function normalizeChild(child) {
+  if (typeof child === "string" || typeof child === "number") {
+    return createTextElement(child);
+  }
+  return child;
+}
+
+function createElement(type, props, ...children) {
+  const normalizedChildren = children
+    .flat(Infinity)
+    .filter((child) => child !== null && child !== undefined && child !== false)
+    .map(normalizeChild);
+
+  return {
+    type,
+    props: {
+      ...(props || {}),
+      children: normalizedChildren,
+    },
+  };
+}
+
+function isFormattingWhitespace(text) {
+  return /^\s*$/.test(text) && text.includes("\n");
+}
+
+function domToVnode(domNode, options = {}) {
+  const sanitize = options.sanitize !== false;
+  if (domNode == null) return null;
+
+  if (domNode.nodeType === 3) {
+    const text = domNode.nodeValue == null ? "" : String(domNode.nodeValue);
+    return isFormattingWhitespace(text) ? null : createTextElement(text);
+  }
+  if (domNode.nodeType !== 1) return null;
+
+  const type = String(domNode.localName || domNode.tagName || "").toLowerCase();
+  if (type === "" || (sanitize && type === "script")) return null;
+
+  const props = {};
+  const booleanAttributes = new Set([
+    "checked", "selected", "disabled", "multiple", "readonly", "required",
+    "autofocus", "hidden", "open", "novalidate", "formnovalidate",
+  ]);
+  for (const attribute of Array.from(domNode.attributes || [])) {
+    const sourceName = String(attribute.name);
+    if (sanitize && /^on/i.test(sourceName)) continue;
+    const name = sourceName.toLowerCase() === "class"
+      ? "className"
+      : sourceName.toLowerCase() === "for" ? "htmlFor" : sourceName;
+    props[name] = booleanAttributes.has(sourceName.toLowerCase())
+      ? true
+      : String(attribute.value);
+  }
+
+  if (props.key === undefined && props["data-key"] !== undefined) {
+    props.key = props["data-key"];
+  }
+
+  const source = type === "template" && domNode.content
+    ? domNode.content
+    : domNode;
+  const children = [];
+  for (const child of Array.from(source.childNodes || [])) {
+    const vnode = domToVnode(child, options);
+    if (vnode !== null) children.push(vnode);
+  }
+  return { type, props: { ...props, children } };
+}
+
+function domToVnodeList(container, options = {}) {
+  if (container == null) return [];
+  const list = [];
+  const source = container.childNodes || container.children || [];
+  for (const child of Array.from(source)) {
+    const vnode = domToVnode(child, options);
+    if (vnode !== null) {
+      list.push(vnode);
+    }
+  }
+  return list;
+}
+
+function normalizeDom(domNode, options = {}) {
+  const sanitize = options.sanitize !== false;
+  for (const child of Array.from(domNode.childNodes || [])) {
+    if (child.nodeType === 3) {
+      if (isFormattingWhitespace(String(child.nodeValue || ""))) {
+        child.parentNode.removeChild(child);
+      }
+    } else if (child.nodeType === 1) {
+      if (sanitize && String(child.localName || child.tagName).toLowerCase() === "script") {
+        child.parentNode.removeChild(child);
+        continue;
+      }
+      if (sanitize) {
+        for (const attribute of Array.from(child.attributes || [])) {
+          if (/^on/i.test(attribute.name)) child.removeAttribute(attribute.name);
+        }
+      }
+      normalizeDom(child, options);
+    } else if (child.nodeType !== 1) {
+      child.parentNode.removeChild(child);
+    }
+  }
+  if (typeof domNode.normalize === "function") domNode.normalize();
+  return domNode;
+}
+
+const api = {
+  TEXT_ELEMENT,
+  createElement,
+  createTextElement,
+  domToVnode,
+  domToVnodeList,
+  normalizeDom,
+};
+
+if (typeof module !== "undefined" && module.exports) module.exports = api;
+if (typeof globalThis !== "undefined") globalThis.MiniReactElement = api;
+})();</script>
+<script>
+const SRC = "(function () {\n\"use strict\";\n\nconst TEXT_ELEMENT = \"TEXT_ELEMENT\";\n\nfunction createTextElement(text) {\n  return {\n    type: TEXT_ELEMENT,\n    props: {\n      nodeValue: String(text),\n      children: [],\n    },\n  };\n}\n\nfunction normalizeChild(child) {\n  if (typeof child === \"string\" || typeof child === \"number\") {\n    return createTextElement(child);\n  }\n  return child;\n}\n\nfunction createElement(type, props, ...children) {\n  const normalizedChildren = children\n    .flat(Infinity)\n    .filter((child) => child !== null && child !== undefined && child !== false)\n    .map(normalizeChild);\n\n  return {\n    type,\n    props: {\n      ...(props || {}),\n      children: normalizedChildren,\n    },\n  };\n}\n\nfunction isFormattingWhitespace(text) {\n  return /^\\s*$/.test(text) && text.includes(\"\\n\");\n}\n\nfunction domToVnode(domNode, options = {}) {\n  const sanitize = options.sanitize !== false;\n  if (domNode == null) return null;\n\n  if (domNode.nodeType === 3) {\n    const text = domNode.nodeValue == null ? \"\" : String(domNode.nodeValue);\n    return isFormattingWhitespace(text) ? null : createTextElement(text);\n  }\n  if (domNode.nodeType !== 1) return null;\n\n  const type = String(domNode.localName || domNode.tagName || \"\").toLowerCase();\n  if (type === \"\" || (sanitize && type === \"script\")) return null;\n\n  const props = {};\n  const booleanAttributes = new Set([\n    \"checked\", \"selected\", \"disabled\", \"multiple\", \"readonly\", \"required\",\n    \"autofocus\", \"hidden\", \"open\", \"novalidate\", \"formnovalidate\",\n  ]);\n  for (const attribute of Array.from(domNode.attributes || [])) {\n    const sourceName = String(attribute.name);\n    if (sanitize && /^on/i.test(sourceName)) continue;\n    const name = sourceName.toLowerCase() === \"class\"\n      ? \"className\"\n      : sourceName.toLowerCase() === \"for\" ? \"htmlFor\" : sourceName;\n    props[name] = booleanAttributes.has(sourceName.toLowerCase())\n      ? true\n      : String(attribute.value);\n  }\n\n  if (props.key === undefined && props[\"data-key\"] !== undefined) {\n    props.key = props[\"data-key\"];\n  }\n\n  const source = type === \"template\" && domNode.content\n    ? domNode.content\n    : domNode;\n  const children = [];\n  for (const child of Array.from(source.childNodes || [])) {\n    const vnode = domToVnode(child, options);\n    if (vnode !== null) children.push(vnode);\n  }\n  return { type, props: { ...props, children } };\n}\n\nfunction domToVnodeList(container, options = {}) {\n  if (container == null) return [];\n  const list = [];\n  const source = container.childNodes || container.children || [];\n  for (const child of Array.from(source)) {\n    const vnode = domToVnode(child, options);\n    if (vnode !== null) {\n      list.push(vnode);\n    }\n  }\n  return list;\n}\n\nfunction normalizeDom(domNode, options = {}) {\n  const sanitize = options.sanitize !== false;\n  for (const child of Array.from(domNode.childNodes || [])) {\n    if (child.nodeType === 3) {\n      if (isFormattingWhitespace(String(child.nodeValue || \"\"))) {\n        child.parentNode.removeChild(child);\n      }\n    } else if (child.nodeType === 1) {\n      if (sanitize && String(child.localName || child.tagName).toLowerCase() === \"script\") {\n        child.parentNode.removeChild(child);\n        continue;\n      }\n      if (sanitize) {\n        for (const attribute of Array.from(child.attributes || [])) {\n          if (/^on/i.test(attribute.name)) child.removeAttribute(attribute.name);\n        }\n      }\n      normalizeDom(child, options);\n    } else if (child.nodeType !== 1) {\n      child.parentNode.removeChild(child);\n    }\n  }\n  if (typeof domNode.normalize === \"function\") domNode.normalize();\n  return domNode;\n}\n\nconst api = {\n  TEXT_ELEMENT,\n  createElement,\n  createTextElement,\n  domToVnode,\n  domToVnodeList,\n  normalizeDom,\n};\n\nif (typeof module !== \"undefined\" && module.exports) module.exports = api;\nif (typeof globalThis !== \"undefined\") globalThis.MiniReactElement = api;\n})();";
+</script>
+<script>
+"use strict";
+(function(){
+const REAL = MiniReactElement;
+const SRC_LINES = SRC.split("\n");
+const E = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const s = x => '<span class="s">'+E(x)+'</span>';
+const o = x => '<span class="o">'+E(x)+'</span>';
+const mk = h => { const d=document.createElement("div"); d.innerHTML=h; return d; };
+
+/* ---------- 값 표시 ---------- */
+function nodeDesc(n){
+  if(n.nodeType===3) return '#text "'+n.nodeValue.replace(/\n/g,"⏎")+'"';
+  if(n.nodeType===8) return "#comment";
+  if(n.nodeType===11) return "#fragment";
+  if(n.nodeType===1){ let a=""; for(const x of n.attributes) a+=" "+x.name+(x.value!==""?'="'+x.value+'"':""); return "<"+n.localName+a+">"; }
+  return "node";
+}
+function fmt(v){
+  if(v===undefined) return "undefined";
+  if(v===null) return "null";
+  if(typeof v==="string") return JSON.stringify(v).replace(/\\n/g,"⏎");
+  if(typeof v==="number"||typeof v==="boolean") return String(v);
+  if(typeof v==="function") return "ƒ";
+  if(v instanceof Set) return "Set("+v.size+"개)";
+  if(v&&v.nodeType) return nodeDesc(v);
+  if(Array.isArray(v)) { const t=JSON.stringify(v.map(x=>x&&x.nodeType?nodeDesc(x):x)); return (v.length+"개 ")+(t.length>110?t.slice(0,110)+"…":t); }
+  const t=JSON.stringify(v); return t&&t.length>130?t.slice(0,130)+"…":t;
+}
+
+/* ---------- 기록 ---------- */
+let REC=[], stack=[], FID=0, DOMROOT=null;
+function mkF(fn){ const F={id:++FID,fn,vars:[],map:{}}; F.set=(k,v)=>{ if(!(k in F.map)) F.vars.push(k); F.map[k]=v; return v; }; return F; }
+function snapDom(el){
+  const out=[]; (function w(n,d){ out.push("  ".repeat(d)+nodeDesc(n)); n.childNodes.forEach(c=>w(c,d+1)); })(el,0); return out.join("\n");
+}
+function S(F,lines,html,opt){
+  opt=opt||{};
+  if(!stack.includes(F)) stack.push(F);
+  const L=Array.isArray(lines)?lines:[lines,lines];
+  REC.push({lines:L,html,kind:opt.kind||"실행",ret:opt.ret,hasRet:"ret" in opt,chip:opt.chip||"",
+    dom:DOMROOT?snapDom(DOMROOT):null,
+    stack:stack.map(f=>({id:f.id,fn:f.fn,vars:f.vars.map(k=>[k,fmt(f.map[k])])}))});
+}
+function done(F){ const i=stack.indexOf(F); if(i>=0) stack.length=i; }
+function RET(F,line,val,html){ S(F,line,html,{kind:"반환",ret:val}); done(F); return val; }
+function reset(){ REC=[]; stack=[]; FID=0; DOMROOT=null; }
+
+/* ---------- 추적용 복사본 ---------- */
+function tCTE(text,head){
+  const F=mkF("createTextElement"); F.set("text",text);
+  if(head) S(F,6,s("호출한 쪽")+"이(가) "+o("createTextElement")+"을(를) 부른다. 인자 text="+E(fmt(text)),{kind:"호출"});
+  const r={type:"TEXT_ELEMENT",props:{nodeValue:String(text),children:[]}};
+  return RET(F,[7,13],r,s("createTextElement")+"이(가) "+o("글자 VNode")+"를 만들어 돌려준다. nodeValue = String(text) = "+E(fmt(String(text))),{});
+}
+function tNC(child,head){
+  const F=mkF("normalizeChild"); F.set("child",child);
+  if(head) S(F,16,s("호출한 쪽")+"이(가) "+o("normalizeChild")+"을(를) 부른다. child="+E(fmt(child)),{kind:"호출"});
+  const isStr=(typeof child==="string"||typeof child==="number");
+  S(F,17,s("normalizeChild")+"이(가) "+o("child의 자료형")+"을(를) 검사한다: typeof child = "+typeof child+" → "+(isStr?"문자열 또는 숫자이므로 참":"문자열도 숫자도 아니므로 거짓"),{kind:"분기",chip:"typeof child = "+typeof child});
+  if(isStr){
+    S(F,18,s("normalizeChild")+"이(가) "+o("createTextElement(child)")+"를 부른다.",{kind:"호출"});
+    const v=tCTE(child,false);
+    return RET(F,18,v,s("normalizeChild")+"이(가) 받은 "+o("글자 VNode")+"를 그대로 돌려준다.",{});
+  }
+  return RET(F,20,child,s("normalizeChild")+"이(가) "+o("child")+"를 바꾸지 않고 그대로 돌려준다(이미 VNode로 보고 건드리지 않음).",{});
+}
+function tCE(type,props,children){
+  const F=mkF("createElement"); F.set("type",type); F.set("props",props); F.set("children",children);
+  S(F,23,s("호출한 쪽")+"이(가) "+o("createElement")+"을(를) 부른다. type="+E(fmt(type))+", 자식 인자 "+children.length+"개가 children 배열로 모인다.",{kind:"호출"});
+  const flat=children.flat(Infinity);
+  S(F,[24,25],s("createElement")+"이(가) "+o("children")+"을(를) .flat(Infinity)로 한 겹으로 편다.",{chip:"flat → "+fmt(flat)});
+  const filt=flat.filter(c=>c!==null&&c!==undefined&&c!==false);
+  S(F,26,s("createElement")+"이(가) "+o("flat 결과")+"에서 null · undefined · false를 걸러 낸다. "+(flat.length-filt.length)+"개를 버렸다.",{kind:"분기",chip:"filter → "+fmt(filt)});
+  const out=[];
+  filt.forEach((c,i)=>{
+    S(F,27,s("createElement")+"이(가) "+o("자식 "+(i+1)+"/"+filt.length)+"("+E(fmt(c))+")에 normalizeChild를 부른다.",{kind:"호출"});
+    out.push(tNC(c,false));
+    S(F,27,s("createElement")+"이(가) normalizeChild의 결과를 "+o("map 결과 "+(i+1)+"번째")+"로 받았다.",{kind:"결과",chip:fmt(out[out.length-1])});
+  });
+  F.set("normalizedChildren",out);
+  S(F,[24,27],s("createElement")+"이(가) "+o("normalizedChildren")+"에 map 결과 "+out.length+"개를 담았다.",{});
+  const r={type,props:{...(props||{}),children:out}};
+  return RET(F,[29,35],r,s("createElement")+"이(가) "+o("{ type, props }")+"를 만들어 돌려준다. props를 펼친 뒤(줄 32) children을 덧붙였다(줄 33).",{});
+}
+function tIFW(text,head){
+  const F=mkF("isFormattingWhitespace"); F.set("text",text);
+  if(head) S(F,38,s("호출한 쪽")+"이(가) "+o("isFormattingWhitespace")+"를 부른다. text="+E(fmt(text)),{kind:"호출"});
+  const a=/^\s*$/.test(text), b=a?text.includes("\n"):null, r=a&&b;
+  return RET(F,39,r,s("isFormattingWhitespace")+"이(가) "+o("text")+"를 검사한다: 공백뿐인가 = "+a+(a?", 줄바꿈 있는가 = "+b:" (거짓이라 줄바꿈 검사는 건너뜀)")+" → "+r,{chip:"/^\\s*$/.test = "+a});
+}
+function tDV(domNode,options,head){
+  options=options===undefined?{}:options;
+  const F=mkF("domToVnode"); F.set("domNode",domNode); F.set("options",options);
+  if(head) S(F,42,s("호출한 쪽")+"이(가) "+o("domToVnode")+"를 부른다. domNode="+E(fmt(domNode)),{kind:"호출"});
+  const sanitize=F.set("sanitize",options.sanitize!==false);
+  S(F,43,s("domToVnode")+"이(가) "+o("sanitize")+"를 "+sanitize+"로 정한다 (options.sanitize !== false).",{});
+  if(domNode==null){ S(F,44,s("domToVnode")+"이(가) "+o("domNode")+"가 null인지 검사한다 → 참.",{kind:"분기"}); return RET(F,44,null,s("domToVnode")+"이(가) null을 돌려준다.",{}); }
+  S(F,44,s("domToVnode")+"이(가) "+o("domNode")+"가 null인지 검사한다 → 거짓.",{kind:"분기"});
+  if(domNode.nodeType===3){
+    S(F,46,s("domToVnode")+"이(가) "+o("nodeType")+"을 검사한다: "+domNode.nodeType+" === 3 → 참(글자 노드).",{kind:"분기"});
+    const text=F.set("text",domNode.nodeValue==null?"":String(domNode.nodeValue));
+    S(F,47,s("domToVnode")+"이(가) "+o("text")+"에 글자 값을 담았다.",{chip:"text = "+fmt(text)});
+    S(F,48,s("domToVnode")+"이(가) "+o("isFormattingWhitespace(text)")+"를 부른다.",{kind:"호출"});
+    const ws=tIFW(text,false);
+    S(F,48,s("domToVnode")+"이(가) 판정 결과 "+o(String(ws))+"를 받았다. "+(ws?"서식 공백이므로 null을 돌려준다.":"서식 공백이 아니므로 createTextElement를 부른다."),{kind:"결과"});
+    if(ws) return RET(F,48,null,s("domToVnode")+"이(가) null을 돌려준다(이 글자는 VNode가 되지 않음).",{});
+    S(F,48,s("domToVnode")+"이(가) "+o("createTextElement(text)")+"를 부른다.",{kind:"호출"});
+    const r=tCTE(text,false);
+    return RET(F,48,r,s("domToVnode")+"이(가) 받은 "+o("글자 VNode")+"를 돌려준다.",{});
+  }
+  S(F,46,s("domToVnode")+"이(가) "+o("nodeType")+"을 검사한다: "+domNode.nodeType+" === 3 → 거짓.",{kind:"분기"});
+  if(domNode.nodeType!==1){ S(F,50,s("domToVnode")+"이(가) "+o("nodeType")+"을 검사한다: "+domNode.nodeType+" !== 1 → 참(요소도 글자도 아님).",{kind:"분기"}); return RET(F,50,null,s("domToVnode")+"이(가) null을 돌려준다(주석 같은 노드는 버림).",{}); }
+  S(F,50,s("domToVnode")+"이(가) "+o("nodeType")+"을 검사한다: 1 !== 1 → 거짓(요소 노드).",{kind:"분기"});
+  const type=F.set("type",String(domNode.localName||domNode.tagName||"").toLowerCase());
+  S(F,52,s("domToVnode")+"이(가) "+o("type")+"에 소문자 태그 이름을 담았다.",{chip:"type = "+fmt(type)});
+  const skip=(type===""||(sanitize&&type==="script"));
+  S(F,53,s("domToVnode")+"이(가) "+o("type")+"을 검사한다: 빈 문자열인가 = "+(type==="")+", script이면서 sanitize인가 = "+(sanitize&&type==="script")+" → "+(skip?"참":"거짓"),{kind:"분기"});
+  if(skip) return RET(F,53,null,s("domToVnode")+"이(가) null을 돌려준다(script는 VNode로 만들지 않음).",{});
+  const props=F.set("props",{});
+  S(F,55,s("domToVnode")+"이(가) "+o("props")+"를 빈 객체로 만들었다.",{});
+  F.set("booleanAttributes","Set(11개)");
+  S(F,[56,59],s("domToVnode")+"이(가) "+o("booleanAttributes")+"에 값 없이 쓰는 속성 11개를 담았다.",{chip:"checked · selected · disabled · … · formnovalidate"});
+  const attrs=Array.from(domNode.attributes||[]);
+  const BOOL=new Set(["checked","selected","disabled","multiple","readonly","required","autofocus","hidden","open","novalidate","formnovalidate"]);
+  for(const attribute of attrs){
+    F.set("attribute",attribute);
+    S(F,60,s("domToVnode")+"의 for가 "+o("속성 "+attribute.name)+"을(를) attribute로 꺼냈다.",{kind:"분기"});
+    const sourceName=F.set("sourceName",String(attribute.name));
+    S(F,61,s("domToVnode")+"이(가) "+o("sourceName")+"에 속성 이름을 담았다.",{chip:"sourceName = "+fmt(sourceName)});
+    const isOn=sanitize&&/^on/i.test(sourceName);
+    S(F,62,s("domToVnode")+"이(가) "+o("sourceName")+"이 on으로 시작하는지 검사한다: sanitize = "+sanitize+" → "+(isOn?"참, continue로 이 속성을 건너뜀":"거짓"),{kind:"분기"});
+    if(isOn){ S(F,62,s("domToVnode")+"이(가) "+o(sourceName)+"을(를) props에 넣지 않고 다음 속성으로 간다(인라인 이벤트 제거).",{}); continue; }
+    const lower=sourceName.toLowerCase();
+    const name=F.set("name",lower==="class"?"className":lower==="for"?"htmlFor":sourceName);
+    S(F,[63,65],s("domToVnode")+"이(가) "+o("name")+"을 정했다: "+(lower==="class"?"class → className":lower==="for"?"for → htmlFor":"그대로 "+sourceName),{chip:"name = "+fmt(name)});
+    const isBool=BOOL.has(lower);
+    props[name]=isBool?true:String(attribute.value); F.set("props",props);
+    S(F,[66,68],s("domToVnode")+"이(가) "+o("props["+name+"]")+"에 "+(isBool?"true(값 없는 속성이라 true)":"문자열 값")+"을 넣었다.",{chip:"props = "+fmt(props)});
+  }
+  S(F,60,s("domToVnode")+"의 for가 "+o("속성 목록")+"을 모두 돌아 끝났다.",{kind:"분기"});
+  const needKey=(props.key===undefined&&props["data-key"]!==undefined);
+  S(F,71,s("domToVnode")+"이(가) "+o("key")+"가 없고 data-key가 있는지 검사한다 → "+(needKey?"참":"거짓"),{kind:"분기",chip:"props.key = "+fmt(props.key)+", props[\"data-key\"] = "+fmt(props["data-key"])});
+  if(needKey){ props.key=props["data-key"]; F.set("props",props); S(F,72,s("domToVnode")+"이(가) "+o("props.key")+"에 data-key 값을 복사했다.",{chip:"props.key = "+fmt(props.key)}); }
+  const useContent=(type==="template"&&domNode.content);
+  const source=F.set("source",useContent?domNode.content:domNode);
+  S(F,[75,77],s("domToVnode")+"이(가) "+o("source")+"를 정했다: "+(useContent?"template이므로 domNode.content(조각)를 쓴다":"domNode 자신을 쓴다"),{kind:"분기",chip:"source = "+fmt(source)});
+  const children=F.set("children",[]);
+  S(F,78,s("domToVnode")+"이(가) "+o("children")+"을 빈 배열로 만들었다.",{});
+  const kids=Array.from(source.childNodes||[]);
+  for(const child of kids){
+    F.set("child",child);
+    S(F,79,s("domToVnode")+"의 for가 "+o("자식")+" "+E(nodeDesc(child))+"을(를) child로 꺼냈다.",{kind:"분기"});
+    S(F,80,s("domToVnode")+"이(가) "+o("domToVnode(child, options)")+"를 다시 부른다(재귀).",{kind:"호출"});
+    const vnode=tDV(child,options,false);
+    F.set("vnode",vnode);
+    S(F,80,s("domToVnode")+"이(가) 재귀 호출의 결과를 "+o("vnode")+"로 받았다.",{kind:"결과",chip:"vnode = "+fmt(vnode)});
+    const push=(vnode!==null);
+    S(F,81,s("domToVnode")+"이(가) "+o("vnode !== null")+"인지 검사한다 → "+(push?"참, children에 넣는다":"거짓, 버린다"),{kind:"분기"});
+    if(push){ children.push(vnode); F.set("children",children); S(F,81,s("domToVnode")+"이(가) "+o("children")+"에 vnode를 넣었다. 이제 "+children.length+"개.",{chip:"children = "+fmt(children)}); }
+  }
+  S(F,79,s("domToVnode")+"의 for가 "+o("자식 목록")+"을 모두 돌아 끝났다.",{kind:"분기"});
+  const r={type,props:{...props,children}};
+  return RET(F,83,r,s("domToVnode")+"이(가) "+o("{ type, props: { ...props, children } }")+"를 돌려준다.",{});
+}
+function tDVL(container,options,head){
+  options=options===undefined?{}:options;
+  const F=mkF("domToVnodeList"); F.set("container",container); F.set("options",options);
+  if(head) S(F,86,s("호출한 쪽")+"이(가) "+o("domToVnodeList")+"를 부른다. container="+E(fmt(container)),{kind:"호출"});
+  if(container==null){ S(F,87,s("domToVnodeList")+"이(가) "+o("container")+"가 null인지 검사한다 → 참.",{kind:"분기"}); return RET(F,87,[],s("domToVnodeList")+"이(가) 빈 배열 []을 돌려준다.",{}); }
+  S(F,87,s("domToVnodeList")+"이(가) "+o("container")+"가 null인지 검사한다 → 거짓.",{kind:"분기"});
+  const list=F.set("list",[]); S(F,88,s("domToVnodeList")+"이(가) "+o("list")+"를 빈 배열로 만들었다.",{});
+  const source=F.set("source",container.childNodes||container.children||[]);
+  S(F,89,s("domToVnodeList")+"이(가) "+o("source")+"에 container의 childNodes("+source.length+"개)를 담았다.",{});
+  for(const child of Array.from(source)){
+    F.set("child",child);
+    S(F,90,s("domToVnodeList")+"의 for가 "+o("자식")+" "+E(nodeDesc(child))+"을(를) child로 꺼냈다.",{kind:"분기"});
+    S(F,91,s("domToVnodeList")+"이(가) "+o("domToVnode(child, options)")+"를 부른다.",{kind:"호출"});
+    const vnode=tDV(child,options,false); F.set("vnode",vnode);
+    S(F,91,s("domToVnodeList")+"이(가) 결과를 "+o("vnode")+"로 받았다.",{kind:"결과",chip:"vnode = "+fmt(vnode)});
+    const ok=(vnode!==null);
+    S(F,92,s("domToVnodeList")+"이(가) "+o("vnode !== null")+"인지 검사한다 → "+(ok?"참":"거짓, 이 자식은 건너뜀"),{kind:"분기"});
+    if(ok){ list.push(vnode); F.set("list",list); S(F,93,s("domToVnodeList")+"이(가) "+o("list")+"에 vnode를 넣었다. 이제 "+list.length+"개.",{}); }
+  }
+  S(F,90,s("domToVnodeList")+"의 for가 "+o("자식 목록")+"을 모두 돌아 끝났다.",{kind:"분기"});
+  return RET(F,96,list,s("domToVnodeList")+"이(가) "+o("list")+"를 돌려준다.",{});
+}
+function tND(domNode,options,head){
+  options=options===undefined?{}:options;
+  const F=mkF("normalizeDom"); F.set("domNode",domNode); F.set("options",options);
+  if(head) S(F,99,s("호출한 쪽")+"이(가) "+o("normalizeDom")+"을 부른다. domNode="+E(fmt(domNode)),{kind:"호출"});
+  const sanitize=F.set("sanitize",options.sanitize!==false);
+  S(F,100,s("normalizeDom")+"이(가) "+o("sanitize")+"를 "+sanitize+"로 정한다.",{});
+  const kids=Array.from(domNode.childNodes||[]);
+  for(const child of kids){
+    F.set("child",child);
+    S(F,101,s("normalizeDom")+"의 for가 "+o("자식")+" "+E(nodeDesc(child))+"을(를) child로 꺼냈다(자식 목록은 미리 복사해 둔 것).",{kind:"분기"});
+    if(child.nodeType===3){
+      S(F,102,s("normalizeDom")+"이(가) "+o("nodeType")+"을 검사한다: 3 === 3 → 참(글자).",{kind:"분기"});
+      const txt=String(child.nodeValue||"");
+      S(F,103,s("normalizeDom")+"이(가) "+o("isFormattingWhitespace(...)")+"를 부른다.",{kind:"호출"});
+      const ws=tIFW(txt,false);
+      S(F,103,s("normalizeDom")+"이(가) 판정 "+o(String(ws))+"를 받았다.",{kind:"결과"});
+      if(ws){ child.parentNode.removeChild(child); S(F,104,s("normalizeDom")+"이(가) "+o("서식 공백 글자 노드")+"를 부모에서 지웠다(removeChild).",{}); }
+    } else if(child.nodeType===1){
+      S(F,102,s("normalizeDom")+"이(가) "+o("nodeType")+"을 검사한다: "+child.nodeType+" === 3 → 거짓.",{kind:"분기"});
+      S(F,106,s("normalizeDom")+"이(가) "+o("nodeType")+"을 검사한다: 1 === 1 → 참(요소).",{kind:"분기"});
+      const isScript=sanitize&&String(child.localName||child.tagName).toLowerCase()==="script";
+      S(F,107,s("normalizeDom")+"이(가) "+o("child")+"가 script인지 검사한다 → "+(isScript?"참":"거짓"),{kind:"분기"});
+      if(isScript){ child.parentNode.removeChild(child); S(F,108,s("normalizeDom")+"이(가) "+o("script 요소")+"를 지웠다(removeChild).",{}); S(F,109,s("normalizeDom")+"이(가) continue로 이 자식의 나머지 처리를 건너뛰고 다음 자식으로 간다.",{}); continue; }
+      S(F,111,s("normalizeDom")+"이(가) "+o("sanitize")+"가 켜졌는지 검사한다 → "+sanitize,{kind:"분기"});
+      if(sanitize){
+        for(const attribute of Array.from(child.attributes||[])){
+          F.set("attribute",attribute);
+          S(F,112,s("normalizeDom")+"의 for가 "+o("속성 "+attribute.name)+"을(를) attribute로 꺼냈다.",{kind:"분기"});
+          const on=/^on/i.test(attribute.name);
+          S(F,113,s("normalizeDom")+"이(가) "+o(attribute.name)+"이 on으로 시작하는지 검사한다 → "+(on?"참, 속성을 뗀다":"거짓"),{kind:"분기"});
+          if(on) child.removeAttribute(attribute.name);
+        }
+      }
+      S(F,116,s("normalizeDom")+"이(가) "+o("normalizeDom(child, options)")+"를 다시 부른다(재귀).",{kind:"호출"});
+      tND(child,options,false);
+      S(F,116,s("normalizeDom")+"이(가) 자식 정리를 마치고 돌아왔다.",{kind:"결과"});
+    } else {
+      S(F,102,s("normalizeDom")+"이(가) "+o("nodeType")+"을 검사한다: "+child.nodeType+" === 3 → 거짓.",{kind:"분기"});
+      S(F,106,s("normalizeDom")+"이(가) "+o("nodeType")+"을 검사한다: "+child.nodeType+" === 1 → 거짓.",{kind:"분기"});
+      S(F,117,s("normalizeDom")+"이(가) "+o("nodeType")+"을 검사한다: "+child.nodeType+" !== 1 → 참(주석 등).",{kind:"분기"});
+      child.parentNode.removeChild(child); S(F,118,s("normalizeDom")+"이(가) "+o("주석 노드")+"를 지웠다(removeChild).",{});
+    }
+  }
+  S(F,101,s("normalizeDom")+"의 for가 "+o("자식 목록")+"을 모두 돌아 끝났다.",{kind:"분기"});
+  const has=(typeof domNode.normalize==="function");
+  S(F,121,s("normalizeDom")+"이(가) "+o("domNode.normalize")+"가 함수인지 검사한다 → "+has,{kind:"분기"});
+  if(has){ domNode.normalize(); S(F,121,s("normalizeDom")+"이(가) "+o("domNode.normalize()")+"로 이웃한 글자 노드를 하나로 합치고 빈 글자 노드를 지웠다.",{}); }
+  return RET(F,122,domNode,s("normalizeDom")+"이(가) "+o("domNode")+"를 돌려준다(같은 노드, 안쪽만 바뀜).",{});
+}
+function tLoad(){
+  const G=mkF("파일 로드(IIFE)");
+  S(G,1,s("브라우저")+"이(가) "+o("element.js")+"의 첫 줄 (function () {을 만나 이 함수를 만들고 바로 호출한다(즉시 실행 함수, IIFE).",{kind:"호출"});
+  S(G,2,s("브라우저")+"이(가) "+o('"use strict"')+"를 켠다. 선언하지 않은 변수에 값을 넣으면 오류가 난다.",{});
+  G.set("TEXT_ELEMENT","TEXT_ELEMENT");
+  S(G,4,s("IIFE")+"이(가) "+o("TEXT_ELEMENT")+"에 글자 노드용 type 이름을 담았다.",{chip:'TEXT_ELEMENT = "TEXT_ELEMENT"'});
+  [[6,"createTextElement"],[16,"normalizeChild"],[23,"createElement"],[38,"isFormattingWhitespace"],[42,"domToVnode"],[86,"domToVnodeList"],[99,"normalizeDom"]].forEach(([ln,nm])=>{
+    G.set(nm,"ƒ "+nm); S(G,ln,s("IIFE")+"이(가) "+o("function "+nm)+"을(를) 지역 범위에 등록했다. 함수 선언은 실행 전에 범위 맨 위로 올라오므로(hoisting) 호출은 아직 하지 않는다.",{});
+  });
+  G.set("api","{ 6개 }");
+  S(G,[125,132],s("IIFE")+"이(가) "+o("api")+"에 내보낼 값 6개(TEXT_ELEMENT, createElement, createTextElement, domToVnode, domToVnodeList, normalizeDom)를 묶었다.",{});
+  const m=(typeof module!=="undefined"&&module.exports);
+  S(G,134,s("IIFE")+"이(가) "+o("module")+"이 있는지 검사한다: 브라우저에서는 typeof module = "+typeof module+" → "+(m?"참":"거짓, module.exports에는 넣지 않음"),{kind:"분기"});
+  S(G,135,s("IIFE")+"이(가) "+o("globalThis")+"가 있는지 검사한다 → "+(typeof globalThis!=="undefined")+". 참이면 globalThis.MiniReactElement = api로 전역에 공개한다(이 시나리오는 실제로 덮어쓰지 않음).",{kind:"분기"});
+  return RET(G,136,{keys:Object.keys(REAL)},s("IIFE")+"이(가) 끝나고 "+o("MiniReactElement")+"의 키 "+Object.keys(REAL).length+"개가 전역에 남는다.",{});
+}
+
+/* ---------- 시나리오 ---------- */
+const TXT=h=>{const d=mk(h);return d.firstChild;};
+const SC=[];
+function add(tab,id,title,desc,run,check){ SC.push({tab,id,title,desc,run,check}); }
+const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+
+add("파일 로드","load","파일을 처음 읽을 때","브라우저가 element.js를 읽어 IIFE를 실행하고 api를 내보내는 1~136줄 흐름이에요(함수 본문은 호출될 때까지 실행되지 않아요).",()=>tLoad(),()=>true);
+add("createTextElement","cte","createTextElement(\"김정글 \")","글자 하나를 VNode로 감싸요.",()=>tCTE("김정글 ",true),r=>eq(r,REAL.createTextElement("김정글 ")));
+add("normalizeChild","nc1","normalizeChild(\"안녕\") — 문자열","문자열이면 17행이 참이라 createTextElement로 감싸요.",()=>tNC("안녕",true),r=>eq(r,REAL.createElement("x",null,"안녕").props.children[0]));
+add("normalizeChild","nc2","normalizeChild(VNode) — 이미 VNode","문자열도 숫자도 아니면 17행이 거짓이라 20행에서 그대로 돌려줘요.",()=>{const v={type:"b",props:{children:[]}};return tNC(v,true);},r=>eq(r,{type:"b",props:{children:[]}}));
+add("createElement","ce","createElement(\"p\", {id:\"a\"}, \"안녕\", null, [\"B\", 3], false)","자식 인자를 펴고(flat), 걸러내고(filter), VNode로 정리(map)해요.",()=>tCE("p",{id:"a"},["안녕",null,["B",3],false]),r=>eq(r,REAL.createElement("p",{id:"a"},"안녕",null,["B",3],false)));
+add("isFormattingWhitespace","ifw1","isFormattingWhitespace(\"\\n  \") — 줄바꿈 공백","공백뿐이고 줄바꿈이 있어 true예요.",()=>tIFW("\n  ",true),r=>r===true);
+add("isFormattingWhitespace","ifw2","isFormattingWhitespace(\"안녕 \") — 일반 글자","공백뿐이 아니라 false예요(줄바꿈 검사는 건너뜀).",()=>tIFW("안녕 ",true),r=>r===false);
+add("isFormattingWhitespace","ifw3","isFormattingWhitespace(\"   \") — 줄바꿈 없는 공백","공백뿐이지만 줄바꿈이 없어 false예요(띄어쓰기 한 칸은 의미가 있어서 지키려는 규칙).",()=>tIFW("   ",true),r=>r===false);
+
+const H3="<h3>김정글 <small>Frontend Engineer</small></h3>";
+const BTN='<button class="btn" disabled onclick="x()" data-key="k1">저장</button>';
+function domCase(tab,id,title,desc,html,pick,opts){
+  add(tab,id,title,desc,()=>{ const n=pick(mk(html)); return tDV(n,opts,true); },
+   r=>{ const n=pick(mk(html)); return eq(r,REAL.domToVnode(n,opts)); });
+}
+domCase("domToVnode","dv1","글자 노드 \"김정글 \"","nodeType 3이라 46~48행으로 가서 글자 VNode가 돼요.","김정글 ",d=>d.firstChild);
+domCase("domToVnode","dv2","서식 공백 \"⏎  \"","줄바꿈 있는 공백뿐이라 isFormattingWhitespace가 true → 48행에서 null.","<p>\n  </p>",d=>d.firstChild.firstChild);
+domCase("domToVnode","dv3","주석 노드","nodeType 8이라 46행 거짓, 50행 참 → null.","<!-- 메모 -->",d=>d.firstChild);
+domCase("domToVnode","dv4","script 요소 (sanitize 기본 켜짐)","53행에서 script를 만나 null을 돌려줘요.","<script>alert(1)<\/script>",d=>d.firstChild);
+domCase("domToVnode","dv5","script 요소 (sanitize:false)","옵션으로 sanitize를 끄면 script도 VNode가 돼요.","<script>alert(1)<\/script>",d=>d.firstChild,{sanitize:false});
+domCase("domToVnode","dv6","속성이 많은 button","class→className, disabled→true, onclick 제거, data-key→key를 한 번에 보여요.",BTN,d=>d.firstChild);
+domCase("domToVnode","dv7","h3 안의 small (재귀)","자식마다 domToVnode가 자기 자신을 다시 불러요.",H3,d=>d.firstChild);
+domCase("domToVnode","dv8","label for=\"a\" → htmlFor","65행: for를 htmlFor로 바꿔요.",'<label for="a">이름</label>',d=>d.firstChild);
+domCase("domToVnode","dv9","template (content 사용)","75~77행: template은 content 조각의 자식을 읽어요.","<template><p>x</p></template>",d=>d.firstChild);
+add("domToVnode","dv10","domToVnode(null)","44행에서 null을 바로 돌려줘요.",()=>tDV(null,undefined,true),r=>r===null&&REAL.domToVnode(null)===null);
+
+function listHtml(){ return "<div>\n  <p>a</p>\n  글자\n  <!-- 주석 -->\n</div>"; }
+add("domToVnodeList","dvl1","domToVnodeList(container)","컨테이너의 자식마다 domToVnode를 부르고 null이 아닌 것만 모아요.",()=>tDVL(mk(listHtml()).firstChild,undefined,true),r=>eq(r,REAL.domToVnodeList(mk(listHtml()).firstChild)));
+add("domToVnodeList","dvl2","domToVnodeList(null)","87행에서 빈 배열을 돌려줘요.",()=>tDVL(null,undefined,true),r=>eq(r,[])&&eq(REAL.domToVnodeList(null),[]));
+
+const ND_HTML='<div>\n  <p onclick="x()">안녕<b>굵게</b></p>\n  <!-- 메모 -->\n  <script>alert(1)<\/script>\n</div>';
+add("normalizeDom","nd","normalizeDom(div) — 공백·주석·script·onclick 정리","진짜 DOM이 한 단계씩 바뀌는 모습을 오른쪽 \"진짜 DOM 상태\"에서 볼 수 있어요.",
+  ()=>{ const root=mk(ND_HTML).firstChild; DOMROOT=root; const r=tND(root,undefined,true); return r; },
+  r=>{ const a=mk(ND_HTML).firstChild; REAL.normalizeDom(a); return r.outerHTML===a.outerHTML; });
+add("normalizeDom","nd2","normalizeDom — 글자 노드 둘이 이어진 경우","normalize()가 이웃 글자 노드를 하나로 합치는 121행을 보여요.",
+  ()=>{ const root=mk("<p>a</p>").firstChild; root.appendChild(document.createTextNode("b")); DOMROOT=root; return tND(root,undefined,true); },
+  r=>{ const a=mk("<p>a</p>").firstChild; a.appendChild(document.createTextNode("b")); REAL.normalizeDom(a); return r.outerHTML===a.outerHTML&&r.childNodes.length===1; });
+
+/* ---------- 실행 · 검증 ---------- */
+const RUN={};
+SC.forEach(sc=>{
+  reset(); let res, err=null; try{ res=sc.run(); }catch(e){ err=e; }
+  const steps=REC.slice();
+  let ok=false; try{ ok=!err&&sc.check(res); }catch(e){ ok=false; }
+  RUN[sc.id]={steps,ok,err,res};
+});
+
+/* ---------- 변한 변수 표시 계산 ---------- */
+Object.values(RUN).forEach(r=>{
+  const prev={};
+  r.steps.forEach(st=>{
+    st.stack.forEach(f=>{ const p=prev[f.id]||{}; f.vars=f.vars.map(([k,v])=>[k,v,p[k]!==v]); const nm={}; f.vars.forEach(([k,v])=>nm[k]=v); prev[f.id]=nm; });
+  });
+});
+
+/* ---------- 소스 렌더 ---------- */
+const KW=/\b(function|const|let|var|return|if|else|for|of|continue|new|typeof|null|undefined|true|false)\b/g;
+function hlLine(t){
+  let h=E(t);
+  const ci=h.indexOf("//"); let cm=""; if(ci>=0){ cm='<span class="cm">'+h.slice(ci)+"</span>"; h=h.slice(0,ci); }
+  h=h.replace(/(&quot;[^&]*?&quot;|"[^"]*")/g,'<span class="st">$1</span>').replace(KW,'<span class="k">$1</span>').replace(/\b(\d+)\b/g,'<span class="nu">$1</span>');
+  return h+cm;
+}
+const codeEl=document.getElementById("code");
+codeEl.innerHTML=SRC_LINES.map((t,i)=>'<div class="ln" id="L'+(i+1)+'"><span class="n">'+(i+1)+'</span><span>'+hlLine(t)+'</span></div>').join("");
+
+/* ---------- 정의 · 조건 · 이유 ---------- */
+const DEFS={
+ 4:'TEXT_ELEMENT = "TEXT_ELEMENT": 글자 VNode의 type 이름. nodeType 값(1 = 요소, 3 = 글자, 8 = 주석, 11 = 조각)은 DOM 표준이 정한 숫자예요.',
+ 46:'nodeType 3 = 글자(Text), nodeType 1 = 요소(Element), 8 = 주석(Comment). DOM 표준이 정한 값이에요.',
+ 50:'nodeType !== 1이면 요소가 아니에요(주석 8 등). 글자(3)는 앞의 46행에서 이미 처리했어요.',
+ 56:'booleanAttributes: 값 없이 쓰는 속성 11개(checked, selected, disabled, multiple, readonly, required, autofocus, hidden, open, novalidate, formnovalidate).',
+ 62:'/^on/i: 대소문자 구분 없이 "on"으로 시작하는 속성(onclick, onload 등). 인라인 이벤트 코드를 VNode에 싣지 않으려는 거름망이에요.',
+ 63:'class → className, for → htmlFor는 자바스크립트 DOM 프로퍼티 이름이에요(class, for가 예약어라서).',
+ 71:'key는 diff가 자식을 짝짓는 식별자예요. HTML에서는 data-key로 적어 두고 이 줄이 key로 복사해요.',
+ 75:'template 요소의 자식은 element.childNodes가 아니라 element.content(조각)에 들어 있어요.',
+ 87:'container가 null이면 읽을 것이 없으므로 빈 배열 [].',
+ 101:'Array.from(domNode.childNodes): 살아 있는 목록을 복사해 두고 돌아요. 도는 중에 노드를 지워도 목록이 밀리지 않게 하려는 거예요.',
+ 121:'Node.normalize(): 이웃한 글자 노드를 하나로 합치고 빈 글자 노드를 지워요.',
+ 134:'module은 Node.js의 CommonJS에만 있어요. 브라우저에서는 typeof module이 "undefined"라서 이 줄은 거짓이에요.',
+ 135:'globalThis는 브라우저의 window와 같은 전역 객체예요. 여기에 MiniReactElement 이름으로 api를 붙여 다른 스크립트가 쓰게 해요.'
+};
+const COND={
+ 17:['child가 글자나 숫자야?','참 → 18행에서 글자 VNode로 감싼다','거짓 → 20행에서 그대로 돌려준다','이 검사가 없으면 VNode 객체까지 글자로 감싸 [object Object]가 나온다'],
+ 26:['버릴 값이야?(null · undefined · false)','참 → 그 자식을 목록에서 뺀다','거짓 → 남긴다','조건부 렌더링(cond && <x/>)의 false가 글자 "false"로 화면에 찍힌다'],
+ 44:['domNode가 비었어?','참 → null 반환','거짓 → 아래 검사로 진행','null에서 nodeType을 읽다가 TypeError가 난다'],
+ 46:['글자 노드야?','참 → 47~48행(글자 VNode 또는 null)','거짓 → 50행으로','글자를 요소로 읽어 attributes가 없어 빈 type을 만든다'],
+ 48:['서식 공백이야?','참 → null(버림)','거짓 → 글자 VNode 생성','들여쓰기 줄바꿈이 자식 한 칸씩 차지해 diff의 위치 비교가 밀린다'],
+ 50:['요소도 글자도 아니야?','참 → null(주석 등을 버림)','거짓 → 요소로 읽기 계속','주석이 요소처럼 처리돼 localName이 없어 오류가 난다'],
+ 53:['type이 비었거나 script야?','참 → null','거짓 → 속성 읽기로','script 요소가 VNode가 되어 나중에 render 때 실행될 수 있다(sanitize 켠 경우)'],
+ 62:['on으로 시작하는 속성이야?','참 → continue, 이 속성은 props에 넣지 않는다','거짓 → 이름 변환으로','onclick="…" 문자열이 VNode에 실려 이벤트 코드가 그대로 퍼진다'],
+ 66:['값 없는 속성(disabled 등)이야?','참 → true','거짓 → 속성 값 문자열','disabled=""가 문자열로 남아 "비활성"과 "빈 값"을 구분 못 한다'],
+ 71:['key가 없고 data-key가 있어?','참 → 72행에서 key로 복사','거짓 → 그대로','data-key만 쓴 목록이 key 없는 목록처럼 취급된다'],
+ 75:['template이고 content가 있어?','참 → content 조각에서 자식 읽기','거짓 → domNode 자신에서 읽기','template 안쪽이 비어 있는 것처럼 읽는다'],
+ 81:['vnode가 null이 아니야?','참 → children에 넣는다','거짓 → 건너뜀','null이 children에 섞여 diff에서 TypeError가 난다'],
+ 87:['container가 비었어?','참 → [] 반환','거짓 → 자식 읽기로','null.childNodes를 읽다가 TypeError가 난다'],
+ 92:['vnode가 null이 아니야?','참 → list에 넣는다','거짓 → 건너뜀','공백·주석이 null로 목록에 섞인다'],
+ 102:['글자 노드야?','참 → 103행 서식 공백 검사','거짓 → 106행으로','글자와 요소를 구분하지 못한다'],
+ 103:['서식 공백이야?','참 → 104행에서 노드 삭제','거짓 → 그대로 둔다','들여쓰기 줄바꿈이 DOM에 남아 위치 비교가 밀린다'],
+ 106:['요소 노드야?','참 → 107~116행','거짓 → 117행(주석 등)','요소 검사 없이 속성을 읽다가 오류가 난다'],
+ 107:['script 요소야?','참 → 삭제 후 continue','거짓 → 속성 정리로','script가 DOM에 남는다'],
+ 111:['sanitize가 켜졌어?','참 → 속성 검사 돌기','거짓 → 속성을 건드리지 않는다','sanitize:false로 쓸 수 없다'],
+ 113:['on으로 시작하는 속성이야?','참 → 속성을 뗀다','거짓 → 남긴다','인라인 이벤트가 DOM에 남는다'],
+ 117:['요소도 글자도 아니야?','참 → 노드 삭제(주석)','거짓 → 해당 없음','주석이 DOM에 남는다'],
+ 121:['normalize가 함수야?','참 → 이웃 글자 합치기','거짓 → 건너뜀','글자 노드가 쪼개진 채 남아 VNode 글자가 둘로 나뉜다'],
+ 134:['module이 있어?(Node.js)','참 → module.exports에 api','거짓 → 건너뜀','브라우저에서 module 참조 오류가 난다'],
+ 135:['globalThis가 있어?','참 → 전역에 공개','거짓 → 건너뜀','다른 스크립트가 MiniReactElement를 못 쓴다']
+};
+const WHY={
+ 4:'오타 없이 같은 문자열을 쓰려고 상수로 한 번만 적어요.',
+ [7]:'글자도 요소와 같은 { type, props } 모양이어야 diff가 한 가지 방식으로 비교해요.',
+ 20:'이미 VNode인 값은 다시 감싸면 안 돼요.',
+ 25:'children에 배열을 중첩해 넘겨도(예: map 결과) 한 겹으로 펴서 일정한 모양을 만들어요.',
+ 32:'호출한 쪽의 props를 복사해 원본 객체를 바꾸지 않아요. children은 항상 마지막에 덧붙여요.',
+ 39:'서식(들여쓰기)용 줄바꿈과 글자 "a b"의 띄어쓰기 한 칸을 구분하는 규칙이에요.',
+ 43:'기본은 안전 모드(on*, script 제거)이고 options.sanitize:false로만 꺼요.',
+ 52:'HTML 태그 이름은 대소문자를 구분하지 않아 소문자로 통일해요.',
+ 55:'속성 값을 모을 빈 상자를 만들어요.',
+ 60:'DOM 노드의 속성은 attributes 목록에 있어서 한 개씩 꺼내 읽어요.',
+ 79:'자식은 childNodes에 있어서 한 개씩 꺼내 같은 함수를 다시 불러요(재귀).',
+ 83:'모은 type, props, children을 한 객체로 합쳐 돌려줘요.',
+ 96:'모은 VNode 배열을 돌려줘요.',
+ 100:'sanitize 설정을 한 번 계산해 재귀에도 같은 options를 넘겨요.',
+ 104:'공백 글자 노드를 진짜 DOM에서 지워요. 이 함수는 DOM을 직접 바꿔요.',
+ 116:'자식 요소의 안쪽도 똑같이 정리해야 트리 전체가 깨끗해져요.',
+ 122:'정리한 같은 노드를 돌려줘서 호출한 쪽이 이어 쓸 수 있어요.'
+};
+
+/* ---------- 화면 ---------- */
+const tabs=[...new Set(SC.map(s=>s.tab))];
+let curTab=tabs[0], cur=SC[0], k=0, timer=null;
+const $=id=>document.getElementById(id);
+function renderTabs(){
+  $("fnTabs").innerHTML=tabs.map(t=>'<button role="tab" data-t="'+t+'" class="'+(t===curTab?"on":"")+'">'+t+'</button>').join("");
+  $("scBtns").innerHTML=SC.filter(s=>s.tab===curTab).map(sc=>'<button data-s="'+sc.id+'" class="'+(sc.id===cur.id?"on":"")+'">'+E(sc.title)+'</button>').join("");
+}
+function pickScenario(id){
+  cur=SC.find(x=>x.id===id); curTab=cur.tab; k=0; stop();
+  const R=RUN[cur.id];
+  $("scInfo").innerHTML='<b>'+E(cur.title)+'</b><br>'+E(cur.desc)+'<br><span class="note">검증: 추적용 복사본의 결과가 진짜 MiniReactElement의 결과와 </span>'+(R.ok?'<span class="ok">같음 ✓</span>':'<span class="bad">다름 ✗'+(R.err?" ("+E(R.err.message)+")":"")+'</span>')+' <span class="note">· 총 '+R.steps.length+'단계</span>';
+  $("slider").max=R.steps.length-1;
+  const jumps=[];
+  R.steps.forEach((st,i)=>{ if(st.kind==="호출"||i===0) jumps.push('<option value="'+i+'">#'+(i+1)+' 줄 '+st.lines[0]+' '+st.kind+'</option>'); });
+  $("jump").innerHTML='<option value="">단계로 이동…</option>'+jumps.join("");
+  renderTabs(); draw();
+}
+function logHtml(R,k){
+  const cls={"호출":"a","결과":"b","반환":"c","분기":"d","실행":""};
+  const from=Math.max(0,k-119);
+  return R.steps.slice(from,k+1).map((st,i)=>'<span class="'+cls[st.kind]+'">#'+(from+i+1)+' ['+st.kind+'] 줄 '+st.lines[0]+(st.lines[1]!==st.lines[0]?"~"+st.lines[1]:"")+'  '+E(st.html.replace(/<[^>]+>/g,""))+'</span>').join("\n");
+}
+function stackHtml(st){
+  let h='<div class="frame glob"><b>전역 (파일 안)</b><table><tr><td class="mono">TEXT_ELEMENT</td><td class="v">"TEXT_ELEMENT"</td></tr></table>';
+  const frames=st.stack; let inner="";
+  for(let i=frames.length-1;i>=0;i--){
+    const f=frames[i];
+    inner='<div class="frame"><b>'+E(f.fn)+'()</b><table>'+f.vars.map(([n,v,c])=>'<tr class="'+(c?"chg":"")+'"><td class="mono">'+E(n)+'</td><td class="v">'+E(v)+'</td></tr>').join("")+'</table>'+inner+'</div>';
+  }
+  return h+inner+'</div>';
+}
+function draw(){
+  const R=RUN[cur.id], st=R.steps[k];
+  $("pos").textContent="단계 "+(k+1)+" / "+R.steps.length;
+  $("slider").value=k; $("bPrev").disabled=k===0; $("bFirst").disabled=k===0; $("bNext").disabled=k===R.steps.length-1;
+  $("stepCard").innerHTML='<h3><span class="tag t-'+st.kind+'">'+st.kind+'</span>줄 '+st.lines[0]+(st.lines[1]!==st.lines[0]?"~"+st.lines[1]:"")+'</h3><div>'+st.html+'</div>'+(st.chip?'<div style="margin-top:4px"><span class="chip">'+E(st.chip)+'</span></div>':"")+(WHY[st.lines[0]]?'<div class="why note">왜: '+E(WHY[st.lines[0]])+'</div>':"")+'<div class="note" style="margin-top:4px">이 줄: <code>'+E(SRC_LINES[st.lines[0]-1].trim())+'</code></div>';
+  $("io").innerHTML='<div class="note">입력: '+E(cur.title)+'</div>'+(st.hasRet?'<div>이 단계의 반환값: <span class="chip">'+E(fmt(st.ret))+'</span></div>':"")+(k===R.steps.length-1&&!st.hasRet?"":"")+(k===R.steps.length-1?'<div>최종 출력: <span class="chip">'+E(R.res&&R.res.nodeType?nodeDesc(R.res)+" (안쪽이 바뀐 같은 노드)":fmt(R.res))+'</span></div>':'<div class="note">마지막 단계에서 최종 출력이 나와요.</div>');
+  $("stack").innerHTML=stackHtml(st);
+  const cd=COND[st.lines[0]];
+  $("condCard").style.display=cd?"":"none";
+  if(cd) $("cond").innerHTML='① 1초 컷: <b>'+E(cd[0])+'</b><br>② 참이면: '+E(cd[1])+'<br>② 거짓이면: '+E(cd[2])+'<br>③ 이 조건이 없으면: '+E(cd[3]);
+  const df=DEFS[st.lines[0]]||DEFS[Math.max(...Object.keys(DEFS).map(Number).filter(n=>n<=st.lines[0]))];
+  $("defs").textContent=DEFS[st.lines[0]]?df:"이 줄에는 따로 풀어 쓸 정의가 없어요. (가장 가까운 앞 정의: "+df.slice(0,40)+"…)";
+  $("domCard").style.display=st.dom?"":"none";
+  if(st.dom){ const prev=k>0&&R.steps[k-1].dom?R.steps[k-1].dom:""; const pl=prev.split("\n"), cl=st.dom.split("\n");
+    $("dombox").innerHTML=cl.map(l=>pl.includes(l)||k===0?E(l):'<span class="chg">'+E(l)+'</span>').join("\n"); }
+  $("log").innerHTML=logHtml(R,k); $("log").scrollTop=$("log").scrollHeight;
+  // 코드 창
+  const done=new Set(); for(let i=0;i<=k;i++){ const [a,b]=R.steps[i].lines; for(let l=a;l<=b;l++) done.add(l); }
+  for(let i=1;i<=SRC_LINES.length;i++){ const el=$("L"+i); el.className="ln"+(i>=st.lines[0]&&i<=st.lines[1]?" hit":(done.has(i)?" ran":"")); }
+  if($("follow").checked){ const el=$("L"+st.lines[0]); const top=el.offsetTop-codeEl.clientHeight/2+30; codeEl.scrollTop=Math.max(0,top); }
+}
+function stop(){ if(timer){ clearInterval(timer); timer=null; $("bPlay").textContent="▶ 자동 재생"; } }
+$("fnTabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; const t=b.dataset.t; pickScenario(SC.find(x=>x.tab===t).id); });
+$("scBtns").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; pickScenario(b.dataset.s); });
+$("bFirst").onclick=()=>{k=0;draw();}; $("bPrev").onclick=()=>{ if(k>0){k--;draw();} };
+$("bNext").onclick=()=>{ if(k<RUN[cur.id].steps.length-1){k++;draw();} };
+$("slider").oninput=e=>{k=+e.target.value;draw();};
+$("jump").onchange=e=>{ if(e.target.value!==""){k=+e.target.value;draw();} };
+$("bPlay").onclick=()=>{ if(timer){stop();return;} $("bPlay").textContent="⏸ 멈춤"; timer=setInterval(()=>{ if(k>=RUN[cur.id].steps.length-1){stop();return;} k++;draw(); },+$("speed").value); };
+$("speed").onchange=()=>{ if(timer){stop();$("bPlay").click();} };
+document.addEventListener("keydown",e=>{ if(e.target.closest("input,select,textarea")) return; if(e.key==="ArrowRight"){e.preventDefault();$("bNext").click();} if(e.key==="ArrowLeft"){e.preventDefault();$("bPrev").click();} });
+
+/* ---------- 자동 검사 ---------- */
+(function(){
+  const EXEC=[4,[6,13],[16,21],17,18,20,[23,36],39,43,44,46,47,48,50,52,53,55,[56,59],60,61,62,[63,65],[66,68],71,72,[75,77],78,79,80,81,83,87,88,89,90,91,92,93,96,100,101,102,103,104,106,107,108,109,111,112,113,116,117,118,121,122,134,135];
+  const covered=new Set(); Object.values(RUN).forEach(r=>r.steps.forEach(st=>{ for(let l=st.lines[0];l<=st.lines[1];l++) covered.add(l); }));
+  const miss=[]; EXEC.forEach(e=>{ const a=Array.isArray(e)?e[0]:e; const b=Array.isArray(e)?e[1]:e; let hit=false; for(let l=a;l<=b;l++) if(covered.has(l)) hit=true; if(!hit) miss.push(a===b?a:a+"~"+b); });
+  const bad=SC.filter(x=>!RUN[x.id].ok).map(x=>x.title);
+  const ringOK=Object.values(RUN).every(r=>r.steps.every(st=>st.lines[0]>=1&&st.lines[1]<=SRC_LINES.length));
+  $("checks").innerHTML='<table><tr><th>검사</th><th>결과</th></tr>'+
+   '<tr><td>시나리오 '+SC.length+'개의 결과가 진짜 MiniReactElement와 같은가</td><td>'+(bad.length?'<span class="bad">다름: '+E(bad.join(" · "))+'</span>':'<span class="ok">전부 같음 ✓</span>')+'</td></tr>'+
+   '<tr><td>실행 가능한 줄 '+EXEC.length+'묶음을 시나리오 전체에서 한 번 이상 지나는가</td><td>'+(miss.length?'<span class="bad">못 지난 줄: '+miss.join(", ")+'</span>':'<span class="ok">전부 지남 ✓</span>')+'</td></tr>'+
+   '<tr><td>모든 단계의 줄 번호가 파일 범위(1~'+SRC_LINES.length+') 안인가</td><td>'+(ringOK?'<span class="ok">안에 있음 ✓</span>':'<span class="bad">범위 밖 단계 있음</span>')+'</td></tr></table>'+
+   '<p class="note">표 아래 설명: 이 검사는 페이지가 열릴 때마다 다시 계산해요. 위 "줄 묶음"은 코드 줄 중 실제로 실행되는 문장만 뽑은 목록이고(괄호·빈 줄·함수 머리 제외), 목록 자체는 이 페이지를 만들 때 사람이 정한 것이에요.</p>';
+})();
+renderTabs(); pickScenario(SC[0].id);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mini React Phase 1 · Virtual DOM & Diff 검증 플레이그라운드</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, -apple-system, sans-serif; color: #202436; background: #f8fafc; }
+      body { max-width: 82rem; margin: 1.5rem auto; padding: 0 1.25rem; }
+      nav.nav-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: .8rem; border-bottom: 2px solid #e2e8f0; font-size: .95rem; }
+      nav.nav-bar a { color: #3b82f6; text-decoration: none; padding: .3rem .6rem; border-radius: .4rem; }
+      nav.nav-bar a.active { background: #e0e7ff; color: #1e40af; font-weight: 700; }
+      h1 { margin: .2rem 0 .5rem; font-size: 1.6rem; }
+      .description { color: #475569; font-size: .95rem; margin-bottom: 1.2rem; }
+      .toolbar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: 1rem 0; padding: .8rem 1rem; background: white; border: 1px solid #cbd5e1; border-radius: .6rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+      button { border: 1px solid #cbd5e1; border-radius: .4rem; background: #ffffff; padding: .5rem .9rem; cursor: pointer; font-weight: 600; font-size: .9rem; transition: background 0.15s; }
+      button:hover:not(:disabled) { background: #f1f5f9; }
+      button.primary { background: #2563eb; color: white; border-color: #1d4ed8; }
+      button.primary:hover:not(:disabled) { background: #1d4ed8; }
+      button:disabled { cursor: default; opacity: .45; }
+      .preset-group { display: flex; gap: .4rem; align-items: center; margin-left: auto; }
+      .preset-label { font-size: .85rem; color: #64748b; font-weight: 600; }
+      .preset-btn { font-size: .8rem; padding: .35rem .6rem; font-weight: 500; }
+      .areas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+      .area { min-width: 0; background: white; border: 1px solid #cbd5e1; border-radius: .7rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; }
+      .area h2 { font-size: 1.05rem; margin: 0; padding: .8rem 1.2rem; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+      .area .badge { font-size: .75rem; font-weight: 500; padding: .2rem .5rem; border-radius: 1rem; background: #e2e8f0; color: #334155; }
+      .surface { min-height: 16rem; padding: 1.2rem; overflow: auto; flex: 1; }
+      #actual-surface { background: #ffffff; }
+      #test-surface { outline: none; background: #fefce8; border-bottom: 1px dashed #cbd5e1; }
+      #test-surface:focus { box-shadow: inset 0 0 0 2px #3b82f6; }
+      .editor-section { padding: .8rem 1.2rem; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+      .editor-label { font-size: .8rem; font-weight: 700; color: #475569; margin-bottom: .3rem; display: block; }
+      #test-code-editor { width: 100%; height: 6.5rem; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, monospace; font-size: .82rem; padding: .5rem; border: 1px solid #cbd5e1; border-radius: .4rem; resize: vertical; }
+      .profile { padding: 1rem; border: 1px solid #cbd5e1; border-radius: .6rem; background: white; }
+      .profile h3 { margin: .1rem 0 .7rem; font-size: 1.15rem; }
+      .profile small { color: #64748b; font-weight: 400; font-size: .85rem; }
+      .profile p.bio { color: #334155; font-size: .95rem; line-height: 1.5; }
+      .skills { display: flex; flex-wrap: wrap; gap: .45rem; padding: 0; list-style: none; margin: .8rem 0 0; }
+      .skills li { background: #e0e7ff; color: #3730a3; border-radius: 1rem; padding: .3rem .7rem; font-size: .85rem; font-weight: 500; }
+      .telemetry { margin-top: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .panel { background: white; border: 1px solid #cbd5e1; border-radius: .6rem; padding: 1rem; }
+      .panel h4 { margin: 0 0 .5rem; font-size: .95rem; color: #1e293b; }
+      #status { min-height: 2.2em; color: #15803d; font-size: .9rem; line-height: 1.4; margin: 0; }
+      .history-log { font-size: .85rem; color: #475569; margin: 0; }
+      #node-reuse-badge { display: inline-block; padding: .15rem .45rem; background: #dcfce7; color: #166534; border-radius: .3rem; font-size: .8rem; font-weight: 600; }
+      @media (max-width: 800px) { .areas, .telemetry { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <nav class="nav-bar" aria-label="메인 탐색">
+      <a href="./phase1_playground.html" class="active">과제 1: Virtual DOM · Diff · History 플레이그라운드</a>
+      <a href="./index.html">과제 3: 3계층 통합 데모 (Gateway / Redis / DBMS)</a>
+    </nav>
+
+    <h1>Mini React Phase 1 · Virtual DOM / Diff / State History 검증</h1>
+    <p class="description">
+      <strong>실제 영역</strong>의 샘플 HTML을 Virtual DOM으로 변환하여 <strong>테스트 영역</strong>에 렌더링합니다. 테스트 영역의 내용을 시각적 또는 HTML 코드로 자유롭게 수정한 뒤 <strong>[Patch]</strong>를 실행하면, Diff 알고리즘이 변경된 부분만을 찾아 실제 영역에 반영합니다.
+    </p>
+
+    <div class="toolbar" aria-label="History and diff controls">
+      <button id="back" type="button" disabled>◀ 뒤로가기</button>
+      <button id="patch" type="button" class="primary">Patch (실제 영역에 부분 반영)</button>
+      <button id="forward" type="button" disabled>앞으로가기 ▶</button>
+      <span id="history-position" aria-live="polite" style="font-weight:700; color:#1e293b; margin-left:.5rem;">1 / 1</span>
+      
+      <div class="preset-group">
+        <span class="preset-label">빠른 검증 프리셋:</span>
+        <button type="button" class="preset-btn" id="preset-text">텍스트 수정</button>
+        <button type="button" class="preset-btn" id="preset-prop">속성/클래스 변경</button>
+        <button type="button" class="preset-btn" id="preset-append">자식 노드 추가</button>
+        <button type="button" class="preset-btn" id="preset-remove">노드 삭제</button>
+        <button type="button" class="preset-btn" id="preset-tag">태그 교체</button>
+      </div>
+    </div>
+
+    <main class="areas">
+      <section class="area" aria-labelledby="actual-title">
+        <h2 id="actual-title">
+          <span>실제 영역 (Real Production Area)</span>
+          <span class="badge" id="actual-badge">DOM 노드 보존 상태</span>
+        </h2>
+        <div class="surface" id="actual-surface">
+          <article class="profile" data-theme="light">
+            <h3>김정글 <small>Frontend Engineer</small></h3>
+            <p class="bio">Virtual DOM과 <b>Diff 알고리즘</b>을 직접 구현하고 있습니다.</p>
+            <ul class="skills">
+              <li>JavaScript</li><li>DOM API</li><li>Virtual DOM</li><li>Hooks</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="area" aria-labelledby="test-title">
+        <h2 id="test-title">
+          <span>테스트 영역 (Staging Test Area)</span>
+          <span class="badge" style="background:#fef3c7; color:#92400e;">직접 편집 가능</span>
+        </h2>
+        <div class="surface" id="test-surface" contenteditable="true" spellcheck="false"
+             aria-label="편집 가능한 테스트 영역 (화면에서 직접 타이핑 수정 가능)"></div>
+        <div class="editor-section">
+          <label class="editor-label" for="test-code-editor">HTML 코드 직접 편집 (HTML 코드를 직접 수정해도 반영됩니다):</label>
+          <textarea id="test-code-editor" spellcheck="false" placeholder="HTML 코드를 수정하세요..."></textarea>
+        </div>
+      </section>
+    </main>
+
+    <div class="telemetry">
+      <div class="panel">
+        <h4>검증 상태 및 DOM 재사용 로그 (Telemetry)</h4>
+        <p id="status" role="status" aria-live="polite">테스트 영역을 수정한 뒤 [Patch] 버튼을 누르거나 Ctrl+Enter를 입력하세요.</p>
+      </div>
+      <div class="panel">
+        <h4>State History 스택 정보</h4>
+        <p class="history-log"><strong>현재 스냅샷:</strong> <span id="history-label">초기 상태</span></p>
+        <p class="history-log" style="margin-top:.4rem;"><strong>단축키:</strong> Patch (Ctrl + Enter) | 뒤로가기 (Alt + ←) | 앞으로가기 (Alt + →)</p>
+      </div>
+    </div>
+
+    <script src="./element.js"></script>
+    <script src="./hook.js"></script>
+    <script src="./component.js"></script>
+    <script src="./render.js"></script>
+    <script src="./diff.js"></script>
+    <script>
+      "use strict";
+
+      const { domToVnode, domToVnodeList, normalizeDom } = MiniReactElement;
+      const { render } = MiniReactRender;
+      const { diff, diffChildren } = MiniReactDiff;
+
+      const actualSurface = document.getElementById("actual-surface");
+      const testSurface = document.getElementById("test-surface");
+      const testCodeEditor = document.getElementById("test-code-editor");
+      const status = document.getElementById("status");
+      const backButton = document.getElementById("back");
+      const forwardButton = document.getElementById("forward");
+      const historyPosition = document.getElementById("history-position");
+      const historyLabel = document.getElementById("history-label");
+      const actualBadge = document.getElementById("actual-badge");
+
+      normalizeDom(actualSurface);
+      let currentVNodes = domToVnodeList(actualSurface);
+      let history = [currentVNodes];
+      let historyIndex = 0;
+
+      function syncCodeEditorFromDom() {
+        testCodeEditor.value = testSurface.innerHTML.trim();
+      }
+
+      function syncDomFromCodeEditor() {
+        const html = testCodeEditor.value.trim();
+        testSurface.innerHTML = html;
+        normalizeDom(testSurface);
+      }
+
+      function vnodeListToTestArea(vnodes) {
+        testSurface.replaceChildren();
+        if (Array.isArray(vnodes)) {
+          for (const vnode of vnodes) {
+            render(vnode, testSurface);
+          }
+        }
+        syncCodeEditorFromDom();
+      }
+
+      function updateHistoryControls(label) {
+        historyPosition.textContent = `${historyIndex + 1} / ${history.length}`;
+        historyLabel.textContent = label;
+        backButton.disabled = historyIndex === 0;
+        forwardButton.disabled = historyIndex === history.length - 1;
+      }
+
+      function sameVNodes(leftList, rightList) {
+        return JSON.stringify(leftList) === JSON.stringify(rightList);
+      }
+
+      // Commit history only after both DOM surfaces have been updated.
+      function commitView(nextVNodes, nextHistory, nextIndex, label) {
+        const previous = currentVNodes;
+        const previousHistory = history;
+        const previousIndex = historyIndex;
+        try {
+          diffChildren(actualSurface, previous, nextVNodes);
+          vnodeListToTestArea(nextVNodes);
+          currentVNodes = nextVNodes;
+          history = nextHistory;
+          historyIndex = nextIndex;
+          updateHistoryControls(label);
+          actualBadge.textContent = `최상위 요소 ${actualSurface.children.length}개`;
+          status.textContent = `${label}: 두 영역과 History 반영 완료`;
+          return true;
+        } catch (error) {
+          currentVNodes = previous;
+          history = previousHistory;
+          historyIndex = previousIndex;
+          try {
+            actualSurface.replaceChildren();
+            for (const vnode of previous) render(vnode, actualSurface);
+            vnodeListToTestArea(previous);
+            updateHistoryControls(`복구 #${previousIndex}`);
+            actualBadge.textContent = '이전 상태 복구';
+            status.textContent = `변경 취소 및 이전 상태 복구: ${error.message}`;
+          } catch (recoveryError) {
+            status.textContent = `복구 실패: ${recoveryError.message}. 페이지를 다시 여세요.`;
+          }
+          return false;
+        }
+      }
+
+      function patchFromTestArea(presetActionName) {
+        normalizeDom(testSurface);
+        const nextVNodes = domToVnodeList(testSurface);
+        if (sameVNodes(currentVNodes, nextVNodes)) {
+          status.textContent = '변경 사항이 없습니다.';
+          return;
+        }
+        const nextHistory = history.slice(0, historyIndex + 1).concat([nextVNodes]);
+        commitView(nextVNodes, nextHistory, nextHistory.length - 1,
+          presetActionName || `Patch #${nextHistory.length - 1}`);
+      }
+
+      function travel(delta) {
+        const targetIndex = historyIndex + delta;
+        if (targetIndex < 0 || targetIndex >= history.length) return;
+        commitView(history[targetIndex], history, targetIndex, `History #${targetIndex}`);
+      }
+
+      // Initial setup
+      vnodeListToTestArea(currentVNodes);
+      updateHistoryControls("초기 상태 (샘플 로드)");
+
+      // Event listeners
+      document.getElementById("patch").addEventListener("click", () => patchFromTestArea());
+      backButton.addEventListener("click", () => travel(-1));
+      forwardButton.addEventListener("click", () => travel(1));
+
+      // Synchronize code editor on blur or paste or input
+      testCodeEditor.addEventListener("input", () => {
+        syncDomFromCodeEditor();
+      });
+
+      testSurface.addEventListener("input", () => {
+        syncCodeEditorFromDom();
+      });
+
+      // Preset buttons for one-click testing
+      document.getElementById("preset-text").addEventListener("click", () => {
+        if (!testSurface.firstElementChild) return;
+        const small = testSurface.querySelector("small");
+        if (small) {
+          small.textContent = "AI Systems Architect (수정됨)";
+        } else {
+          testSurface.firstElementChild.textContent += " (텍스트 수정)";
+        }
+        syncCodeEditorFromDom();
+        patchFromTestArea("텍스트 수정 프리셋");
+      });
+
+      document.getElementById("preset-prop").addEventListener("click", () => {
+        if (!testSurface.firstElementChild) return;
+        const article = testSurface.querySelector("article") || testSurface.firstElementChild;
+        article.setAttribute("data-theme", "dark");
+        article.setAttribute("style", "background: #1e293b; color: #f8fafc; border-color: #475569;");
+        syncCodeEditorFromDom();
+        patchFromTestArea("속성/스타일 변경 프리셋");
+      });
+
+      document.getElementById("preset-append").addEventListener("click", () => {
+        const skills = testSurface.querySelector("ul.skills");
+        if (skills) {
+          const li = document.createElement("li");
+          li.textContent = "Redis & B+Tree DBMS";
+          li.style.background = "#dbeafe";
+          li.style.color = "#1e40af";
+          skills.appendChild(li);
+        } else {
+          const p = document.createElement("p");
+          p.textContent = "새로운 자식 노드 추가됨";
+          testSurface.firstElementChild.appendChild(p);
+        }
+        syncCodeEditorFromDom();
+        patchFromTestArea("자식 노드 추가 프리셋");
+      });
+
+      document.getElementById("preset-remove").addEventListener("click", () => {
+        const skills = testSurface.querySelector("ul.skills");
+        if (skills && skills.lastElementChild) {
+          skills.removeChild(skills.lastElementChild);
+        } else if (testSurface.firstElementChild && testSurface.firstElementChild.lastElementChild) {
+          testSurface.firstElementChild.removeChild(testSurface.firstElementChild.lastElementChild);
+        }
+        syncCodeEditorFromDom();
+        patchFromTestArea("노드 삭제 프리셋");
+      });
+
+      document.getElementById("preset-tag").addEventListener("click", () => {
+        const h3 = testSurface.querySelector("h3");
+        if (h3) {
+          const h1 = document.createElement("h1");
+          h1.innerHTML = h3.innerHTML;
+          h1.style.color = "#dc2626";
+          h3.parentNode.replaceChild(h1, h3);
+        }
+        syncCodeEditorFromDom();
+        patchFromTestArea("태그 교체 프리셋 (H3 -> H1)");
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", (event) => {
+        if (event.ctrlKey && event.key === "Enter") {
+          event.preventDefault();
+          patchFromTestArea();
+        }
+        if (event.altKey && event.key === "ArrowLeft") {
+          event.preventDefault();
+          travel(-1);
+        }
+        if (event.altKey && event.key === "ArrowRight") {
+          event.preventDefault();
+          travel(1);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -31,7 +31,7 @@
       #test-surface:focus { box-shadow: inset 0 0 0 2px #3b82f6; }
       .editor-section { padding: .8rem 1.2rem; background: #f8fafc; border-top: 1px solid #e2e8f0; }
       .editor-label { font-size: .8rem; font-weight: 700; color: #475569; margin-bottom: .3rem; display: block; }
-      #test-code-editor { width: 100%; height: 6.5rem; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, monospace; font-size: .82rem; padding: .5rem; border: 1px solid #cbd5e1; border-radius: .4rem; resize: vertical; }
+      #test-code-editor { width: 100%; height: 15rem; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .85rem; line-height: 1.6; tab-size: 2; white-space: pre; overflow: auto; padding: .7rem .8rem; border: 1px solid #cbd5e1; border-radius: .4rem; resize: vertical; background: #f8fafc; color: #0f172a; }
       .profile { padding: 1rem; border: 1px solid #cbd5e1; border-radius: .6rem; background: white; }
       .profile h3 { margin: .1rem 0 .7rem; font-size: 1.15rem; }
       .profile small { color: #64748b; font-weight: 400; font-size: .85rem; }
@@ -100,7 +100,7 @@
              aria-label="편집 가능한 테스트 영역 (화면에서 직접 타이핑 수정 가능)"></div>
         <div class="editor-section">
           <label class="editor-label" for="test-code-editor">HTML 코드 직접 편집 (HTML 코드를 직접 수정해도 반영됩니다):</label>
-          <textarea id="test-code-editor" spellcheck="false" placeholder="HTML 코드를 수정하세요..."></textarea>
+          <textarea id="test-code-editor" spellcheck="false" wrap="off" placeholder="HTML 코드를 수정하세요..."></textarea>
         </div>
       </section>
     </main>
@@ -157,8 +157,74 @@
         return actualObserver === null ? null : actualObserver.takeRecords().length;
       }
 
+      // 글자 흐름 안에 놓이는 tag(inline element). 이런 tag만 든 element는 한 줄로 적는다.
+      const INLINE_TAGS = new Set(["a", "abbr", "b", "br", "code", "em", "i", "img", "input", "kbd",
+        "label", "mark", "s", "small", "span", "strong", "sub", "sup", "u"]);
+      const INDENT_UNIT = "  ";
+
+      // element 안에 다른 줄로 나눠 적을 자식(block element)이 하나도 없으면 true.
+      function hasOnlyInlineContent(element) {
+        for (const child of Array.from(element.childNodes)) {
+          if (child.nodeType !== 1) continue;
+          if (!INLINE_TAGS.has(child.localName) || !hasOnlyInlineContent(child)) return false;
+        }
+        return true;
+      }
+
+      // element 바로 아래에 글자(text node)가 있으면 true. 공백만 있는 글자는 세지 않는다.
+      function hasDirectText(element) {
+        return Array.from(element.childNodes).some(
+          (child) => child.nodeType === 3 && String(child.nodeValue || "").trim() !== "",
+        );
+      }
+
+      // "<ul class="skills">" 처럼 여는 tag만 글자로 만든다. 속성은 브라우저가 적어 준 그대로 쓴다.
+      function openingTag(element) {
+        const shell = element.cloneNode(false).outerHTML;
+        const closing = `</${element.localName}>`;
+        return shell.endsWith(closing) ? shell.slice(0, -closing.length) : shell;
+      }
+
+      /*
+       * DOM node 하나를 들여쓰기 된 HTML 줄들로 바꿔 lines에 넣는다.
+       * - 글자와 inline tag만 든 element는 한 줄로 둔다(<li>JavaScript</li>).
+       *   글자 사이에 줄 나눔을 넣으면 글자 내용이 바뀌어 Diff가 "변경"으로 잡기 때문이다.
+       * - 글자와 block element가 섞인 element도 같은 이유로 한 줄로 둔다.
+       * - 그 밖의 element는 여는 tag · 자식들 · 닫는 tag를 줄마다 나눠 적는다.
+       *   이렇게 넣은 줄 나눔은 normalizeDom이 형식용 공백으로 보고 지우므로 Diff에 잡히지 않는다.
+       */
+      function pushFormattedLines(node, depth, lines) {
+        const indent = INDENT_UNIT.repeat(depth);
+        if (node.nodeType === 3) {
+          const text = String(node.nodeValue || "");
+          if (text.trim() !== "") lines.push(indent + text.trim());
+          return;
+        }
+        if (node.nodeType !== 1) return;
+        if (node.childNodes.length === 0 || hasOnlyInlineContent(node) || hasDirectText(node)) {
+          lines.push(indent + node.outerHTML);
+          return;
+        }
+        lines.push(indent + openingTag(node));
+        for (const child of Array.from(node.childNodes)) {
+          pushFormattedLines(child, depth + 1, lines);
+        }
+        lines.push(`${indent}</${node.localName}>`);
+      }
+
+      // container의 자식들을 사람이 읽기 좋은 HTML 글자로 만든다(한 줄에 tag 하나, 깊이마다 2칸 들여쓰기).
+      function formatHtml(container) {
+        // 맨 바깥에 tag 없이 놓인 글자가 있으면 줄을 나누지 않는다. 나누면 그 글자의 앞뒤 공백이 달라진다.
+        if (hasDirectText(container)) return container.innerHTML.trim();
+        const lines = [];
+        for (const child of Array.from(container.childNodes)) {
+          pushFormattedLines(child, 0, lines);
+        }
+        return lines.join("\n");
+      }
+
       function syncCodeEditorFromDom() {
-        testCodeEditor.value = testSurface.innerHTML.trim();
+        testCodeEditor.value = formatHtml(testSurface);
       }
 
       function syncDomFromCodeEditor() {

@@ -28,7 +28,7 @@ node test_integration.js
 node test_phase1_regression.js
 ```
 
-프로젝트 루트에 `test_all_in_one.js`가 있는 배치에서는 `node test_all_in_one.js`가 위 8개를 차례로 실행합니다. 회귀 테스트는 환경 변수 `JSDOM_PATH`, 설치된 `jsdom`, `../_chat_bot_server/node_modules/jsdom` 순서로 jsdom을 찾고, 찾지 못하면 건너뛴다는 안내를 출력하고 끝납니다. 화면은 `phase1_playground.html`을 브라우저에서 열어 확인할 수 있습니다. 실행 결과는 각 명령의 출력과 화면 상태를 대조해야 합니다.
+프로젝트 루트에 `test_all_in_one.js`가 있는 배치에서는 `node test_all_in_one.js`가 위 8개를 차례로 실행합니다. 회귀 테스트는 환경 변수 `JSDOM_PATH`, 설치된 `jsdom` 순서로 jsdom을 찾고, 찾지 못하면 건너뛴다는 안내를 출력하고 끝납니다. 화면은 `phase1_playground.html`을 브라우저에서 열어 확인할 수 있습니다. 실행 결과는 각 명령의 출력과 화면 상태를 대조해야 합니다.
 
 ### 폴더 구조
 

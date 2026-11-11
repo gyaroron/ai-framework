@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const JSDOM_CANDIDATES=[process.env.JSDOM_PATH,'jsdom','../_chat_bot_server/node_modules/jsdom'].filter(Boolean);
+const JSDOM_CANDIDATES=[process.env.JSDOM_PATH,'jsdom'].filter(Boolean);
 function loadJsdom(){for(const candidate of JSDOM_CANDIDATES){try{return require(candidate).JSDOM;}catch(error){if(error.code!=='MODULE_NOT_FOUND')throw error;}}return null;}
 const JSDOM=loadJsdom();
 if(JSDOM===null){console.log('SKIP: jsdom is not installed. Set JSDOM_PATH to a jsdom folder or run npm install jsdom to execute this regression test.');process.exit(0);}

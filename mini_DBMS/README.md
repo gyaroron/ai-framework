@@ -4,7 +4,7 @@ Mini DBMS는 C99로 작성한 학습용 저장 엔진(storage engine)입니다. 
 
 - **저장 경로**: 페이지 단위 파일 접근 → 버퍼 풀 → B+ Tree → 트랜잭션과 WAL.
 - **복구 경로**: 시작 시 로그를 읽고 커밋된 쓰기를 다시 적용하며, 완료되지 않은 쓰기는 이전 값으로 되돌립니다.
-- **범위**: SQL 데이터베이스 전체가 아니라 정수 키·값 저장과 제한된 통신 브리지를 다루는 구현입니다.
+- **범위**: 두 부분으로 되어 있습니다. ① 정수 키 · 값 저장 엔진(pager · buffer pool · 디스크 B+ tree · WAL · transaction)과 `server:ip` 통신 브리지 ② SQL 처리기(INSERT · SELECT), 메모리 B+ tree 인덱스, thread pool API 서버. ②는 아래 "SQL 처리기 · 인덱스 · API 서버" 절을 봅니다.
 
 ### 실행 방법
 
@@ -107,9 +107,74 @@ WAL은 변경 이전·이후 값과 작업 번호를 데이터 변경보다 먼�
 ### 알려진 한계와 다음 단계
 
 - **동시 트랜잭션**: 활성 트랜잭션은 한 번에 하나입니다. 다중 트랜잭션 격리와 잠금 관리자는 제공하지 않습니다.
-- **저장 범위**: 핵심 트리는 정수 키와 값을 다루며, 브리지는 `server:ip`와 IPv4 값에 한정됩니다. SQL이나 범용 문자열 데이터베이스가 아닙니다.
+- **저장 범위**: 저장 엔진의 트리는 정수 키와 값을 다루며, 브리지는 `server:ip`와 IPv4 값에 한정됩니다. 문자열 레코드는 SQL 처리기가 별도의 테이블 파일(`<테이블>.tbl`)에 저장합니다. SQL 처리기는 WAL을 쓰지 않습니다.
 - **트리 삭제**: 리프 항목 삭제 뒤 병합과 재균형은 없습니다. 리프 연결은 있으나 공개 범위 검색 API는 확인되지 않습니다.
 - **로그 관리**: 체크포인트와 로그 축소 기능은 확인되지 않아 계속 쓰면 로그가 커집니다.
 - **내구성 검증**: 장애 주입, 전원 차단, 파일 시스템별 동작은 이번에 검증하지 않았습니다.
 
 `make test`를 실행한 뒤 네 테스트의 출력과 종료 상태를 확인하고, 복구를 더 살펴보려면 `tests/test_transaction.c`의 시나리오와 `txn_recover`를 함께 대조하세요.
+
+## SQL 처리기 · 인덱스 · API 서버 (2026-11-11 추가)
+
+요구사항의 Phase 1 · 2 · 3에 해당합니다. 세 단계가 같은 엔진(`sql_engine.c`)을 씁니다.
+
+```text
+Phase 1  SQL 파일 / -e / 표준 입력 → mini_dbms_sql(CLI) → sql_parser.c → sql_engine.c → <테이블>.tbl
+Phase 2  INSERT 때 자동 id → mem_bptree.c 인덱스에 (id → 파일 위치) 등록 → WHERE id = ? 가 인덱스 사용
+Phase 3  client → mini_dbms_sql_server(accept) → thread_pool.c 대기열 → worker thread → sql_engine.c
+```
+
+### 실행
+
+```bash
+make all                                         # mini_dbms_sql, mini_dbms_sql_server 포함
+mkdir -p /tmp/db && cp data/users.schema /tmp/db/
+./mini_dbms_sql /tmp/db examples/sample.sql      # SQL 파일 실행
+./mini_dbms_sql /tmp/db -e "SELECT * FROM users WHERE id = 2;"
+make bench                                       # 100만 건 INSERT 후 인덱스 vs 선형 탐색 비교
+./mini_dbms_sql_server /tmp/db 6381 4            # port 6381, worker thread 4개
+make test                                        # 기존 4개 + test_sql (5개 사례)
+```
+
+### Phase 1 — SQL 처리기
+
+| 파일 | 하는 일 |
+|---|---|
+| `src/sql_parser.c` | SQL 문장을 토큰으로 나누고 `SqlStatement` 구조체로 바꾼다. script를 `;`에서 문장 단위로 자른다 |
+| `src/sql_engine.c` | `SqlStatement`를 실행한다. INSERT는 파일 끝에 한 줄을 쓰고, SELECT는 파일에서 읽는다 |
+| `src/sql_cli.c` | 명령줄에서 SQL 파일 · `-e` 문장 · 표준 입력을 받아 엔진에 넘긴다 |
+
+- 지원 문장: `INSERT INTO t VALUES (...)`, `INSERT INTO t (컬럼, ...) VALUES (...)`, `SELECT * | 컬럼, ... | COUNT(*) FROM t [WHERE 컬럼 = 값]`.
+- 테이블과 schema는 이미 있다고 가정합니다. `<data_dir>/<테이블>.schema`에 컬럼 이름을 쉼표로 적습니다. 첫 컬럼은 `id`여야 합니다(예: `data/users.schema`).
+- 저장 형식: `<테이블>.tbl`의 한 줄이 레코드 한 건이고, 컬럼 값은 tab으로 나눕니다. 값 안의 tab · 줄바꿈 · 역슬래시는 엔진이 `\t` · `\n` · `\\` 두 글자로 바꿔 저장합니다.
+
+### Phase 2 — B+ tree 인덱스
+
+- `execute_insert`가 레코드에 id를 1부터 자동으로 붙이고, `mem_bptree_insert`로 "id → 그 줄이 파일에서 시작하는 위치"를 등록합니다.
+- `WHERE id = 숫자`이면 `execute_select`가 `mem_bptree_find`로 위치를 찾아 `pread`로 그 한 줄만 읽습니다. 결과 끝에 `(1 row, index lookup)`이 붙습니다.
+- 다른 컬럼 조건이면 `execute_select`가 파일의 모든 줄을 읽으며 비교합니다. 결과 끝에 `(N rows, full scan of M rows)`가 붙습니다.
+- 인덱스는 메모리에만 있습니다(node 하나에 key 최대 64개). 프로그램을 다시 켜면 `rebuild_index`가 테이블 파일을 한 번 읽어 다시 만듭니다. 디스크 page 기반인 `bplus_tree.c`와는 별개입니다.
+
+2026-11-11에 Docker(gcc 12)에서 `make bench`로 잰 값입니다. 기계에 따라 달라집니다.
+
+| 항목 | 결과 |
+|---|---|
+| 100만 건 INSERT (SQL 문장을 하나씩 파싱 · 실행) | 2.65초 (초당 약 37만 건) |
+| `SELECT * FROM users WHERE id = ?` (인덱스, 10000회 평균) | 0.0032 ms |
+| `SELECT * FROM users WHERE name = ?` (선형 탐색, 10회 평균) | 80.2 ms |
+| 선형 탐색 / 인덱스 | 약 25000배 |
+
+### Phase 3 — API 서버와 thread pool
+
+- 통신 형식: Mini Redis와 같은 RESP. `PING` → `+PONG`, `SQL "<문장>"` → 결과 글자(bulk string), 실패하면 `-ERR 이유`.
+- main thread가 `accept`로 받은 접속을 `thread_pool_submit`으로 대기열(256칸)에 넣고, worker thread가 꺼내 그 접속의 요청을 실행합니다.
+- 동시성: `sql_engine_execute`가 SELECT에는 읽기 lock(`pthread_rwlock_rdlock`), INSERT에는 쓰기 lock(`pthread_rwlock_wrlock`)을 잡습니다. SELECT끼리는 함께 실행되고, INSERT는 id 부여 · 파일 쓰기 · 인덱스 등록을 혼자 실행합니다.
+- 서버는 INSERT에 성공이라고 답하기 전에 `fflush`로 레코드를 파일에 내려보냅니다. `fsync`는 하지 않으므로 전원이 갑자기 꺼지면 운영체제 buffer에 있던 레코드는 사라질 수 있습니다.
+- 한가한 접속은 5초 뒤 서버가 끊습니다. 접속 하나가 worker 하나를 계속 붙잡는 일을 막습니다.
+- gateway(`mini_React/integration_gateway.js`)의 `POST /api/sql`이 이 서버를 부르고, SELECT 결과를 Mini Redis에 TTL과 함께 넣습니다.
+
+### 한계
+
+- UPDATE · DELETE · JOIN · ORDER BY · 자료형 검사가 없습니다. 모든 값은 문자열로 저장하고 `=` 비교만 합니다.
+- `SELECT *`의 결과를 모두 메모리에 모은 뒤 보냅니다. 100만 건 전체를 한 번에 조회하면 그만큼 메모리를 씁니다.
+- SQL 처리기의 테이블 파일은 WAL · transaction과 연결되어 있지 않습니다.

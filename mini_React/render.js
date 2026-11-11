@@ -13,6 +13,14 @@ function setDomProp(dom, name, value) {
   }
 }
 
+// hook.js의 toBatchedListener를 찾는다. render.js가 hook.js보다 먼저 쓰일 수 있어 부를 때 찾는다.
+function toBatchedListener(handler) {
+  const hookApi = typeof module !== "undefined" && module.exports
+    ? require("./hook")
+    : globalThis.MiniReactHook;
+  return hookApi.toBatchedListener(handler);
+}
+
 function render(element, container) {
   if (element == null || typeof element !== "object") {
     throw new TypeError("render expects a virtual DOM element object");
@@ -39,7 +47,8 @@ function render(element, container) {
     }
     if (name.slice(0, 2).toLowerCase() === "on" &&
         typeof element.props[name] === "function") {
-      dom.addEventListener(name.slice(2).toLowerCase(), element.props[name]);
+      dom.addEventListener(name.slice(2).toLowerCase(),
+        toBatchedListener(element.props[name]));
       continue;
     }
     if (isTextElement && name === "nodeValue") {
@@ -58,7 +67,7 @@ function render(element, container) {
   return dom;
 }
 
-const api = { TEXT_ELEMENT, render, setDomProp };
+const api = { TEXT_ELEMENT, render, setDomProp, toBatchedListener };
 if (typeof module !== "undefined" && module.exports) {
   module.exports = api;
 }

@@ -4,6 +4,14 @@ const http = require("node:http");
 const net = require("node:net");
 
 const CACHE_KEY = "server:ip";
+// SELECT 결과를 Mini Redis에 넣어 둘 때 쓰는 key 앞머리.
+const SQL_CACHE_PREFIX = "sql:";
+// SELECT 결과를 cache에 두는 시간(초). 이 시간이 지나면 Mini Redis가 스스로 지운다(TTL).
+const DEFAULT_SQL_CACHE_TTL_SECONDS = 30;
+// 이보다 큰 결과는 cache에 넣지 않는다. Mini Redis 서버가 요청 하나를 64KiB까지만 받기 때문이다.
+const SQL_CACHE_MAX_BYTES = 32 * 1024;
+// 요청 본문으로 받을 SQL 문장의 최대 길이(byte).
+const SQL_STATEMENT_MAX_BYTES = 8 * 1024;
 
 function encodeCommand(args) {
   const parts = [Buffer.from(`*${args.length}\r\n`, "ascii")];
@@ -101,6 +109,10 @@ function createRespClient(options = {}) {
     ping: () => command(["PING"]),
     get: (key) => command(["GET", key]),
     set: (key, value) => command(["SET", key, value]),
+    // 보관 기간(초)을 함께 주는 SET. 기간이 지나면 Mini Redis가 값을 지운다.
+    setWithTtl: (key, value, seconds) => command(["SET", key, value, "EX", String(seconds)]),
+    // Mini DBMS SQL 서버에 SQL 문장 하나를 보낸다.
+    sql: (statement) => command(["SQL", statement]),
     del: (key) => command(["DEL", key]),
   };
 }
@@ -111,7 +123,7 @@ function sendJson(response, statusCode, value) {
     "content-type": "application/json; charset=utf-8",
     "content-length": body.length,
     "access-control-allow-origin": "*",
-    "access-control-allow-methods": "GET, PUT, DELETE, OPTIONS",
+    "access-control-allow-methods": "GET, PUT, POST, DELETE, OPTIONS",
     "access-control-allow-headers": "content-type",
     "cache-control": "no-store",
   });
@@ -144,6 +156,78 @@ function readJson(request, limit = 16 * 1024) {
   });
 }
 
+// SQL 문장을 "읽기(SELECT) / 쓰기(INSERT) / 그 밖"으로 나누고 대상 테이블 이름을 뽑는다.
+// 정확한 문법 검사는 Mini DBMS의 parser가 한다. 여기서는 cache를 어떻게 다룰지만 정한다.
+function classifySql(statement) {
+  const select = /^\s*select\b[\s\S]*?\bfrom\s+([A-Za-z0-9_]+)/i.exec(statement);
+  if (select !== null) return { kind: "read", table: select[1].toLowerCase() };
+  const insert = /^\s*insert\s+into\s+([A-Za-z0-9_]+)/i.exec(statement);
+  if (insert !== null) return { kind: "write", table: insert[1].toLowerCase() };
+  return { kind: "other", table: null };
+}
+
+// 같은 뜻의 문장이 같은 cache key를 쓰도록 앞뒤 공백과 끝의 ';'을 떼어 낸다.
+function sqlCacheKey(statement) {
+  return SQL_CACHE_PREFIX + statement.trim().replace(/;\s*$/, "").trim();
+}
+
+/*
+ * POST /api/sql 처리.
+ *   SELECT: Mini Redis에 결과가 있으면 그것으로 답한다(source: "cache").
+ *           없으면 Mini DBMS에 물어보고, 결과를 TTL과 함께 Mini Redis에 넣는다(source: "database").
+ *   INSERT: Mini DBMS에 먼저 쓴 뒤, 그 테이블의 SELECT 결과 cache를 모두 지운다(무효화).
+ *           지우지 못한 cache도 TTL이 지나면 사라지므로 낡은 결과가 영원히 남지 않는다.
+ */
+async function handleSql(context, statement) {
+  const { redis, sqlServer, cachedKeysByTable, cacheTtlSeconds } = context;
+  const { kind, table } = classifySql(statement);
+
+  if (kind === "read") {
+    const key = sqlCacheKey(statement);
+    let isCacheAvailable = true;
+    try {
+      const cached = await redis.get(key);
+      if (cached !== null) return { result: cached, source: "cache" };
+    } catch (_cacheError) {
+      isCacheAvailable = false;
+    }
+    const result = await sqlServer.sql(statement);
+    let isCached = false;
+    if (isCacheAvailable && Buffer.byteLength(key) + Buffer.byteLength(result)
+        <= SQL_CACHE_MAX_BYTES) {
+      try {
+        await redis.setWithTtl(key, result, cacheTtlSeconds);
+        if (!cachedKeysByTable.has(table)) cachedKeysByTable.set(table, new Set());
+        cachedKeysByTable.get(table).add(key);
+        isCached = true;
+      } catch (_cacheError) {
+        isCacheAvailable = false;
+      }
+    }
+    return {
+      result,
+      source: isCacheAvailable ? "database" : "database_cache_unavailable",
+      cached: isCached,
+      ttlSeconds: isCached ? cacheTtlSeconds : null,
+    };
+  }
+
+  const result = await sqlServer.sql(statement);
+  let invalidated = 0;
+  if (kind === "write") {
+    const keys = cachedKeysByTable.get(table) || new Set();
+    cachedKeysByTable.delete(table);
+    for (const key of keys) {
+      try {
+        invalidated += await redis.del(key);
+      } catch (_cacheError) {
+        // cache를 지우지 못해도 쓰기는 이미 끝났다. 남은 cache는 TTL이 지나면 사라진다.
+      }
+    }
+  }
+  return { result, source: "database", invalidated };
+}
+
 async function warmCache(redis, dbms) {
   const value = await dbms.get(CACHE_KEY);
   if (value === null) {
@@ -166,11 +250,26 @@ function createGatewayServer(options = {}) {
     timeoutMs: options.timeoutMs,
   });
 
+  // Mini DBMS의 SQL API 서버(thread pool 서버, 기본 port 6381).
+  const sqlServer = options.sqlServer || createRespClient({
+    host: options.sqlHost,
+    port: options.sqlPort === undefined ? 6381 : options.sqlPort,
+    timeoutMs: options.timeoutMs,
+  });
+  const sqlContext = {
+    redis,
+    sqlServer,
+    // 테이블 이름 → 그 테이블의 SELECT 결과를 담고 있는 cache key들. INSERT 때 지울 대상이다.
+    cachedKeysByTable: new Map(),
+    cacheTtlSeconds: options.sqlCacheTtlSeconds === undefined
+      ? DEFAULT_SQL_CACHE_TTL_SECONDS : options.sqlCacheTtlSeconds,
+  };
+
   const server = http.createServer(async (request, response) => {
     if (request.method === "OPTIONS") {
       response.writeHead(204, {
         "access-control-allow-origin": "*",
-        "access-control-allow-methods": "GET, PUT, DELETE, OPTIONS",
+        "access-control-allow-methods": "GET, PUT, POST, DELETE, OPTIONS",
         "access-control-allow-headers": "content-type",
       });
       response.end();
@@ -184,6 +283,32 @@ function createGatewayServer(options = {}) {
         sendJson(response, 200, { ok: true });
       } catch (error) {
         sendJson(response, 503, { error: "dependency_unavailable", message: error.message });
+      }
+      return;
+    }
+
+    if (url.pathname === "/api/sql") {
+      if (request.method !== "POST") {
+        response.setHeader("allow", "POST, OPTIONS");
+        sendJson(response, 405, { error: "method_not_allowed" });
+        return;
+      }
+      try {
+        const body = await readJson(request);
+        if (typeof body.sql !== "string" || body.sql.trim() === ""
+            || Buffer.byteLength(body.sql) > SQL_STATEMENT_MAX_BYTES) {
+          sendJson(response, 400, { error: "invalid_sql", message: "sql must be a non-empty string" });
+          return;
+        }
+        sendJson(response, 200, await handleSql(sqlContext, body.sql));
+      } catch (error) {
+        // Mini DBMS가 "-ERR ..."로 답한 것은 문장이 틀린 것이므로 400, 그 밖은 서버 쪽 문제다.
+        const statusCode = error.respError ? 400 : (error.statusCode || 502);
+        sendJson(response, statusCode, {
+          error: error.respError ? "sql_error"
+            : (statusCode === 400 ? "bad_request" : "upstream_failure"),
+          message: error.message.replace(/^ERR\s+/, ""),
+        });
       }
       return;
     }
@@ -270,6 +395,7 @@ function createGatewayServer(options = {}) {
     server,
     redis,
     dbms,
+    sqlServer,
     warmCache: () => warmCache(redis, dbms),
   };
 }
@@ -312,6 +438,10 @@ if (require.main === module) {
     redisPort: Number(process.env.REDIS_PORT || 6379),
     dbmsHost: process.env.DBMS_HOST || "127.0.0.1",
     dbmsPort: Number(process.env.DBMS_PORT || 6380),
+    sqlHost: process.env.SQL_HOST || process.env.DBMS_HOST || "127.0.0.1",
+    sqlPort: Number(process.env.SQL_PORT || 6381),
+    sqlCacheTtlSeconds: Number(process.env.SQL_CACHE_TTL_SECONDS
+      || DEFAULT_SQL_CACHE_TTL_SECONDS),
   }).then(({ address }) => {
     console.log(`Mini integration gateway listening on ${address.address}:${address.port}`);
   }).catch((error) => {
@@ -320,5 +450,5 @@ if (require.main === module) {
   });
 }
 
-module.exports = { CACHE_KEY, encodeCommand, decodeReply, createRespClient,
-  createGatewayServer, warmCache, startGateway };
+module.exports = { CACHE_KEY, SQL_CACHE_PREFIX, encodeCommand, decodeReply, createRespClient,
+  createGatewayServer, warmCache, startGateway, classifySql, sqlCacheKey };

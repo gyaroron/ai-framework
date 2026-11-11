@@ -126,3 +126,33 @@ HTML은 브라우저의 `innerHTML`로 읽으므로, 이 화면에 별도의 엄
 - [이전 한계 지시서](phase1_한계_수정_지시서.md)는 작성 당시의 관찰과 요구입니다. 현재 코드에 관련 변경이 보이더라도 그 문서의 과거 측정값을 현재 테스트 통과로 간주하지 않습니다.
 
 **직접 확인:** 테스트 화면에서 자식 추가·삭제와 순서 변경을 적용한 뒤 실제 영역과 기록 이동 결과를 대조합니다. 이어 위 두 테스트 명령의 출력과 종료 상태를 확인합니다.
+
+## Batching · useMemo · SQL 화면 (2026-11-11 추가)
+
+### Batching (선택 과제)
+
+- `hook.js`의 `batch(work)`: `work` 안에서 부른 여러 `setState`는 바로 다시 그리지 않습니다. setter가 다시 그릴 component를 `batchedUpdates`에 넣어 두고, 가장 바깥 `batch`가 끝날 때 `batch`가 `update()`를 한 번만 부릅니다.
+- event handler 자동 batching: `render.js`와 `diff.js`가 DOM에 handler를 붙일 때 `toBatchedListener(handler)`로 감쌉니다. 사용자가 한 번 클릭했을 때 handler가 `setState`를 세 번 불러도 화면은 한 번만 다시 그립니다.
+- `batch` 밖(예: `fetch`의 `then` 안)에서 부른 `setState`는 이전과 같이 바로 다시 그립니다. 그래서 `app.js`는 `then` 안에서 여러 state를 바꿀 때 `batch(() => { ... })`로 직접 묶습니다.
+- 실제 React와 다른 점: 실제 React 18은 `then` · `setTimeout` 안의 `setState`도 자동으로 묶습니다. 이 구현은 event handler와 `batch()` 안만 묶습니다.
+
+### useMemo를 화면에서 쓰는 곳
+
+`app.js`의 `App`이 `useMemo(() => parseSqlResult(sqlResult), [sqlResult])`를 부릅니다. `parseSqlResult`는 Mini DBMS가 돌려준 결과 글자를 표 데이터(`{ columns, rows, summary }`)로 바꿉니다. 사용자가 입력 칸에 글자를 쳐서 `App`이 다시 실행되어도 `sqlResult`가 같으면 `useMemo`가 이전 값을 그대로 돌려주므로 결과 글자를 다시 자르지 않습니다.
+
+### SQL 화면과 gateway의 `/api/sql`
+
+- 화면: `SqlPanel`(stateless 자식)이 SQL 입력 칸 · 실행 버튼 · 결과 출처 · 결과 표를 그립니다. state는 모두 root인 `App`에 있습니다.
+- `POST /api/sql` `{ "sql": "..." }`:
+  - SELECT: gateway가 Mini Redis에 `sql:<문장>` key로 먼저 묻습니다. 있으면 `source: "cache"`로 답합니다. 없으면 Mini DBMS SQL 서버(port 6381)에 묻고, 결과를 `SET ... EX 30`으로 넣은 뒤 `source: "database"`로 답합니다.
+  - INSERT: gateway가 Mini DBMS에 먼저 쓰고, 그 테이블의 SELECT cache key를 `DEL`로 지웁니다(무효화). 지우지 못한 cache도 TTL이 지나면 Mini Redis가 지웁니다.
+  - 잘못된 SQL: Mini DBMS가 `-ERR`로 답하면 gateway가 400 `sql_error`로 바꿉니다.
+- 환경 변수: `SQL_HOST`, `SQL_PORT`(기본 6381), `SQL_CACHE_TTL_SECONDS`(기본 30).
+
+### 테스트
+
+```bash
+node test_hook.js          # PASS 9 · 10: batch()와 event handler 자동 batching
+node test_integration.js   # PASS 7 ~ 9: SQL cache · 무효화 · 화면의 결과 표 (가짜 서버 사용)
+REDIS_PORT=6379 DBMS_PORT=6380 SQL_PORT=6381 node test_real_stack.js   # 실제 C 서버 3개로 7개 사례
+```

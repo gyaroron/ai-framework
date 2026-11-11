@@ -175,8 +175,14 @@ function mount(vnode) {
   const node = new MockNode("button");
   const { updateDom } = require("./diff");
   updateDom(node, { onClick: firstHandler }, { onClick: secondHandler });
-  assert.deepEqual(node.removedListeners, [{ type: "click", listener: firstHandler }]);
-  assert.deepEqual(node.addedListeners, [{ type: "click", listener: secondHandler }]);
+  // DOM에는 batch로 감싼 handler가 붙으므로, 뗄 때와 붙일 때 모두 감싼 함수로 비교한다.
+  const { toBatchedListener } = require("./hook");
+  assert.deepEqual(node.removedListeners,
+    [{ type: "click", listener: toBatchedListener(firstHandler) }]);
+  assert.deepEqual(node.addedListeners,
+    [{ type: "click", listener: toBatchedListener(secondHandler) }]);
+  assert.equal(toBatchedListener(firstHandler), toBatchedListener(firstHandler),
+    "the same handler must always map to the same wrapped listener");
   console.log("PASS: changed event handler was detached and reattached");
 }
 

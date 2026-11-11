@@ -87,10 +87,10 @@ TCP 수신 → 클라이언트 입력 버퍼 → RESP 명령 파싱
 
 ## 알려진 한계와 확인 범위
 
-- 데이터는 프로세스 메모리에만 있으며 디스크 저장과 만료 시간(TTL) 처리는 코드에서 확인되지 않습니다.
+- 데이터는 프로세스 메모리에 있습니다. `./mini_redis --server <파일>`로 실행하면 서버가 key가 바뀐 뒤 1초 안에 그 파일에 snapshot을 쓰고, 다시 시작할 때 읽습니다. 마지막 snapshot 이후 1초 안의 변경은 서버가 갑자기 죽으면 사라질 수 있습니다. 만료 시간(TTL)은 아래 "보관 기간(TTL)" 절을 봅니다.
 - RESP 파서는 bulk string 배열 명령에 한정됩니다. `strlen`과 `strcmp`를 쓰므로 NUL 바이트를 포함한 임의의 바이너리 값은 보존하지 못합니다.
 - `DEL`은 키 하나만 받습니다. 전체 Redis 명령이나 프로토콜 호환을 주장할 수 없습니다.
-- `make test`는 `test_resp.c`의 세 파서 사례를 실행하며 해시 테이블 전체나 네트워크 동작을 검증하지 않습니다. 인자 없는 `./mini_redis`는 별도의 다섯 단계 해시 확인을 수행합니다.
+- `make test`는 `test_resp.c`(RESP 파서 3개 사례)와 `test_hashtable.c`(해시 테이블 8개 사례)를 실행합니다. 네트워크 동작은 서버를 띄운 뒤 `node test_server_ttl.js`로 검증합니다. 인자 없는 `./mini_redis`는 다섯 단계 해시 테이블 확인을 출력합니다.
 - `make valgrind` 대상은 인자 없이 프로그램을 실행합니다. 이번 작업에서 누수 검사나 서버 통합 테스트는 실행하지 않았으므로 결과는 미확인입니다.
 
 ---
@@ -121,3 +121,45 @@ cc -std=c99 -Wall -Wextra -Wpedantic hashtable.c main.c -o mini_redis
 
 The table is not thread-safe. A returned value pointer must not be used after
 an update or deletion of its key, or after `ht_destroy`.
+
+## 보관 기간(TTL) · 다운 대비 · 성능 비교 (2026-11-11 추가)
+
+### 보관 기간이 지난 값의 처리
+
+| 명령 | 하는 일 | 응답 |
+|---|---|---|
+| `SET key value EX 초` · `SET key value PX 밀리초` | 서버가 값을 저장하고 만료 시각을 함께 적는다 | `+OK` |
+| `EXPIRE key 초` · `PEXPIRE key 밀리초` | 서버가 살아 있는 key의 만료 시각을 정한다 | 정했으면 `:1`, key가 없으면 `:0` |
+| `TTL key` · `PTTL key` | 서버가 남은 시간을 초 · 밀리초로 답한다 | key가 없으면 `:-2`, 만료 시각이 없으면 `:-1` |
+| `PERSIST key` | 서버가 만료 시각을 지운다 | 지웠으면 `:1`, 아니면 `:0` |
+
+- 만료 시각은 `hashtable.h`의 `Node.expires_at_ms`에 저장합니다. 값이 `HT_NO_EXPIRY`(0)이면 만료되지 않습니다.
+- 지연 만료(lazy expiration): client가 `GET` · `TTL` · `EXPIRE` · `DEL`로 key를 요청하면 `hashtable.c`의 `find_live`가 만료 시각을 확인합니다. 시각이 지났으면 `find_live`가 그 항목을 연결 리스트에서 떼어 메모리를 해제하고, 서버는 없는 key와 똑같이 `$-1`로 답합니다.
+- 능동 만료(active expiration): `server.c`의 event loop가 `select`에 1초 timeout을 주어 요청이 없어도 1초마다 깨어나고, `ht_purge_expired`로 만료된 key를 모두 지웁니다. 아무도 다시 요청하지 않는 key가 메모리에 계속 남는 일을 막습니다.
+- 시계: TTL 계산은 `CLOCK_MONOTONIC`(사람이 시각을 바꿔도 뒤로 가지 않는 시계)을 씁니다. 벽시계를 쓰면 시각을 뒤로 돌렸을 때 만료가 미뤄지기 때문입니다.
+- 일반 `SET key value`는 실제 Redis와 같이 그 key의 만료 시각을 지웁니다.
+
+### 서버가 다운될 때를 대비한 snapshot (선택 과제)
+
+- `./mini_redis --server /경로/redis.snapshot`으로 실행하면 서버가 ① 시작할 때 파일을 읽어 테이블을 채우고 ② key가 바뀐 뒤 1초 안에 파일을 다시 쓰고 ③ `SIGINT` · `SIGTERM`을 받으면 마지막으로 한 번 더 쓴 뒤 종료 코드 0으로 끝납니다.
+- `ht_save`는 임시 파일(`.tmp`)에 모두 쓰고 `fsync`한 뒤 `rename`으로 바꿉니다. 쓰는 도중 서버가 죽어도 이전 파일이 그대로 남습니다.
+- 만료 시각은 벽시계 시각으로 바꿔 저장합니다. `ht_load`는 서버가 꺼져 있는 동안 만료 시각이 지난 key를 되살리지 않습니다.
+- 한계: 마지막 snapshot 이후 최대 1초의 변경은 전원이 갑자기 꺼지면 사라집니다. 명령마다 기록하는 방식(AOF, Append Only File)은 구현하지 않았습니다.
+
+### 테스트와 성능 비교
+
+```bash
+make test                         # test_resp(파서) + test_hashtable(저장 · 조회 · 삭제 · TTL · snapshot 8개 사례)
+./mini_redis --server &           # 서버를 띄운 뒤
+node test_server_ttl.js           # 실제 TCP 연결로 TTL · 잘못된 인자 5개 사례
+node bench_cache.js               # API 응답을 cache에 넣을 때와 안 넣을 때 비교
+```
+
+`bench_cache.js`는 작은 HTTP API 두 개를 만듭니다. `/origin`은 요청마다 원본을 읽고, `/cached`는 Mini Redis에 먼저 물은 뒤 없을 때만 원본을 읽어 API 응답을 `SET ... EX`로 저장합니다. 아래는 2026-11-11에 Docker(gcc 12) 안의 서버와 Windows의 Node.js v24로 잰 값입니다. 기계와 부하에 따라 달라집니다.
+
+| 원본(origin) | cache 없이 평균 | cache 사용 평균 | 비율 |
+|---|---|---|---|
+| Mini DBMS bridge의 `GET server:ip` (요청 2000개) | 0.844 ms | 0.794 ms | 1.06배 |
+| Mini DBMS SQL 서버, 100만 건 테이블의 `WHERE name = ?` 선형 탐색 (요청 100개) | 131.047 ms | 2.232 ms | 58.71배 |
+
+원본이 이미 빠르면(key 하나를 B+ tree에서 찾기) cache의 이득이 거의 없고, 원본이 느릴수록(100만 건 선형 탐색) 이득이 커집니다.

@@ -241,4 +241,86 @@ console.log("PASS 7: hooks called inside a child component throw");
   assert.equal(childRenders, 2);
   console.log("PASS 8: root state reached stateless children through props");
 }
+
+// 9. batch() 안의 여러 setState는 한 번의 render로 묶인다.
+{
+  const { batch } = require("./hook");
+  let renders = 0;
+  let setters;
+  function Root() {
+    renders += 1;
+    const [first, setFirst] = useState(0);
+    const [second, setSecond] = useState("a");
+    setters = { setFirst, setSecond };
+    return createElement("p", null, `${first}:${second}`);
+  }
+  const { dom } = mount(createElement(Root, null));
+  assert.equal(renders, 1);
+
+  // batch 밖: setState 한 번마다 바로 다시 그린다.
+  setters.setFirst(1);
+  setters.setSecond("b");
+  assert.equal(renders, 3);
+  assert.equal(dom.textContent, "1:b");
+
+  // batch 안: 끝날 때까지 그리지 않다가 마지막 값으로 한 번만 그린다.
+  batch(() => {
+    setters.setFirst(2);
+    setters.setFirst((value) => value + 1);
+    setters.setSecond("c");
+    assert.equal(renders, 3, "no render happens inside batch()");
+    assert.equal(dom.textContent, "1:b");
+    // 안쪽 batch가 끝나도 바깥 batch가 끝나기 전에는 그리지 않는다.
+    batch(() => setters.setSecond("d"));
+    assert.equal(renders, 3);
+  });
+  assert.equal(renders, 4);
+  assert.equal(dom.textContent, "3:d");
+
+  // 값이 바뀌지 않은 batch는 다시 그리지 않는다.
+  batch(() => setters.setFirst(3));
+  assert.equal(renders, 4);
+
+  // batch 안에서 오류가 나도 그때까지 바뀐 state는 화면에 반영된다.
+  assert.throws(() => batch(() => {
+    setters.setFirst(9);
+    throw new Error("boom");
+  }), /boom/);
+  assert.equal(renders, 5);
+  assert.equal(dom.textContent, "9:d");
+  console.log("PASS 9: batch() merged several setState calls into one render");
+}
+
+// 10. event handler 하나가 setState를 여러 번 불러도 화면은 한 번만 다시 그린다.
+{
+  let renders = 0;
+  function Buttons(props) {
+    return createElement("button", { onClick: props.onClick }, "go");
+  }
+  function Root() {
+    renders += 1;
+    const [count, setCount] = useState(0);
+    const [label, setLabel] = useState("idle");
+    function handleClick() {
+      setCount((value) => value + 1);
+      setCount((value) => value + 1);
+      setLabel("clicked");
+    }
+    return createElement("section", null,
+      createElement("span", null, `${label}:${count}`),
+      createElement(Buttons, { onClick: handleClick }));
+  }
+  const { dom } = mount(createElement(Root, null));
+  const buttonNode = dom.children[1];
+  assert.equal(renders, 1);
+  for (const handleClick of Array.from(buttonNode.listeners.get("click"))) handleClick({});
+  assert.equal(renders, 2, "one click renders once even with three setState calls");
+  assert.equal(dom.children[0].textContent, "clicked:2");
+  // 다시 그린 뒤에도 listener는 하나만 붙어 있어야 한다(이전 handler가 떼어졌는지).
+  assert.equal(buttonNode.listeners.get("click").size, 1);
+  for (const handleClick of Array.from(buttonNode.listeners.get("click"))) handleClick({});
+  assert.equal(renders, 3);
+  assert.equal(dom.children[0].textContent, "clicked:4");
+  console.log("PASS 10: an event handler's setState calls were batched automatically");
+}
 console.log("All hook tests passed.");

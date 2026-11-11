@@ -10,8 +10,8 @@ const assert = require("node:assert/strict");
 const net = require("node:net");
 const { createElement } = require("./element");
 const { render } = require("./render");
-const { App, CACHE_KEY } = require("./app");
-const { createRespClient, startGateway } = require("./integration_gateway");
+const { App, CACHE_KEY, parseSqlResult } = require("./app");
+const { createRespClient, startGateway, sqlCacheKey } = require("./integration_gateway");
 
 function findCrlf(buffer, offset) {
   for (let i = offset; i + 1 < buffer.length; i += 1) {
@@ -56,9 +56,32 @@ function bulkReply(value) {
   ]);
 }
 
-async function startRespFixture({ port = 0, values, events, name }) {
+// Mini DBMS SQL 서버를 흉내 내는 아주 작은 users 테이블(id, name, email, age).
+// 실제 엔진과 같은 모양의 결과 글자를 돌려준다. 모르는 문장에는 오류를 던진다.
+function createFakeUsersTable() {
+  const rows = [];
+  return function executeSql(statement) {
+    const text = statement.trim();
+    const insert = /^insert into users values \('([^']*)', '([^']*)', (\d+)\);?$/i.exec(text);
+    if (insert !== null) {
+      rows.push([String(rows.length + 1), insert[1], insert[2], insert[3]]);
+      return `INSERT 1 (id=${rows.length})\n`;
+    }
+    const select = /^select \* from users where id = (\d+);?$/i.exec(text);
+    if (select !== null) {
+      const row = rows[Number(select[1]) - 1];
+      return "id\tname\temail\tage\n"
+        + (row ? `${row.join("\t")}\n(1 row, index lookup)\n` : "(0 rows, index lookup)\n");
+    }
+    throw new Error("unsupported statement (only INSERT and SELECT)");
+  };
+}
+
+async function startRespFixture({ port = 0, values, events, name, executeSql }) {
   const store = values || new Map();
-  const counters = { get: 0, set: 0, del: 0 };
+  // key → SET ... EX 로 받은 보관 기간(초). TTL이 실제로 전달됐는지 확인하는 데 쓴다.
+  const ttls = new Map();
+  const counters = { get: 0, set: 0, del: 0, sql: 0 };
   const sockets = new Set();
   const server = net.createServer((socket) => {
     sockets.add(socket);
@@ -83,7 +106,24 @@ async function startRespFixture({ port = 0, values, events, name }) {
             counters.set += 1;
             events.push(`${name}:SET:${key}:${value}`);
             store.set(key, value);
+            ttls.delete(key);
             reply = Buffer.from("+OK\r\n");
+          } else if (verb.toUpperCase() === "SET" && parsed.args.length === 5
+              && parsed.args[3].toUpperCase() === "EX") {
+            counters.set += 1;
+            events.push(`${name}:SETEX:${key}:${parsed.args[4]}`);
+            store.set(key, value);
+            ttls.set(key, Number(parsed.args[4]));
+            reply = Buffer.from("+OK\r\n");
+          } else if (verb.toUpperCase() === "SQL" && parsed.args.length === 2
+              && typeof executeSql === "function") {
+            counters.sql += 1;
+            events.push(`${name}:SQL:${key}`);
+            try {
+              reply = bulkReply(executeSql(key));
+            } catch (error) {
+              reply = Buffer.from(`-ERR ${error.message}\r\n`);
+            }
           } else if (verb.toUpperCase() === "DEL" && parsed.args.length === 2) {
             counters.del += 1;
             events.push(`${name}:DEL:${key}`);
@@ -108,6 +148,7 @@ async function startRespFixture({ port = 0, values, events, name }) {
   });
   return {
     store,
+    ttls,
     counters,
     port: server.address().port,
     close: () => new Promise((resolve, reject) => {
@@ -199,6 +240,7 @@ async function run() {
   const durableValues = new Map([[CACHE_KEY, "192.168.0.1"]]);
   let redisService;
   let dbmsService;
+  let sqlService;
   let gateway;
 
   try {
@@ -206,9 +248,15 @@ async function run() {
     dbmsService = await startRespFixture({
       values: durableValues, events, name: "dbms",
     });
+    sqlService = await startRespFixture({
+      events, name: "sql", executeSql: createFakeUsersTable(),
+    });
     const gatewayOptions = {
       host: "127.0.0.1",
       port: 0,
+      sqlHost: "127.0.0.1",
+      sqlPort: sqlService.port,
+      sqlCacheTtlSeconds: 30,
       redisHost: "127.0.0.1",
       redisPort: redisService.port,
       dbmsHost: "127.0.0.1",
@@ -303,7 +351,8 @@ async function run() {
       for (const child of node.children || []) collect(child);
     }(root));
     assert.ok(inputNode);
-    assert.equal(buttons.length, 2);
+    // 저장 · 삭제 · SQL 실행, 세 개다.
+    assert.equal(buttons.length, 3);
     inputNode.dispatch("input", { target: { value: "203.0.113.8" } });
     buttons[0].dispatch("click", {});
     await waitFor(() => valueNode.textContent === "현재 저장 값: 203.0.113.8",
@@ -312,10 +361,78 @@ async function run() {
     assert.equal(await redis.get(CACHE_KEY), "203.0.113.8");
     assert.equal(await dbms.get(CACHE_KEY), "203.0.113.8");
     console.log("PASS 6: Mini React fetched and updated through HTTP with DOM node reuse");
+
+    // 7. SQL 읽기: 첫 SELECT는 Mini DBMS에서 읽어 TTL과 함께 cache에 넣고, 두 번째는 cache에서 읽는다.
+    // 5번에서 gateway를 다시 띄웠으므로 지금 떠 있는 gateway의 주소를 쓴다.
+    const liveUrl = `http://127.0.0.1:${gateway.address.port}`;
+    const postSql = (sql) => httpJson(liveUrl, "/api/sql", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sql }),
+    });
+    const insertKim = await postSql("INSERT INTO users VALUES ('Kim', 'kim@example.com', 30);");
+    assert.equal(insertKim.response.status, 200);
+    assert.deepEqual(insertKim.body,
+      { result: "INSERT 1 (id=1)\n", source: "database", invalidated: 0 });
+    const selectSql = "SELECT * FROM users WHERE id = 1;";
+    const firstSelect = await postSql(selectSql);
+    assert.equal(firstSelect.response.status, 200);
+    assert.equal(firstSelect.body.source, "database");
+    assert.equal(firstSelect.body.cached, true);
+    assert.equal(firstSelect.body.ttlSeconds, 30);
+    assert.match(firstSelect.body.result, /^id\tname\temail\tage\n1\tKim\t/);
+    assert.equal(redisService.store.get(sqlCacheKey(selectSql)), firstSelect.body.result);
+    assert.equal(redisService.ttls.get(sqlCacheKey(selectSql)), 30);
+    const sqlCallsBeforeHit = sqlService.counters.sql;
+    const secondSelect = await postSql(`  ${selectSql}  `);
+    assert.deepEqual(secondSelect.body, { result: firstSelect.body.result, source: "cache" });
+    assert.equal(sqlService.counters.sql, sqlCallsBeforeHit);
+    console.log("PASS 7: SELECT was cached in Mini Redis with a TTL and then served from cache");
+
+    // 8. SQL 쓰기: INSERT는 Mini DBMS에 쓴 뒤 그 테이블의 SELECT cache를 지운다.
+    const insertLee = await postSql("INSERT INTO users VALUES ('Lee', 'lee@example.com', 25);");
+    assert.deepEqual(insertLee.body,
+      { result: "INSERT 1 (id=2)\n", source: "database", invalidated: 1 });
+    assert.equal(redisService.store.has(sqlCacheKey(selectSql)), false);
+    assert.equal((await postSql(selectSql)).body.source, "database");
+    const badSql = await postSql("DROP TABLE users;");
+    assert.equal(badSql.response.status, 400);
+    assert.equal(badSql.body.error, "sql_error");
+    assert.match(badSql.body.message, /unsupported statement/);
+    assert.equal((await postSql("   ")).response.status, 400);
+    assert.equal((await httpJson(liveUrl, "/api/sql")).response.status, 405);
+    console.log("PASS 8: INSERT invalidated the cached SELECT; bad requests were rejected");
+
+    // 9. 화면: SQL 입력 → 실행 버튼 → 결과 표. 결과 글자는 useMemo(parseSqlResult)를 거친다.
+    assert.deepEqual(parseSqlResult("id\tname\n1\tKim\n(1 row, index lookup)\n"),
+      { columns: ["id", "name"], rows: [["1", "Kim"]], summary: "(1 row, index lookup)" });
+    assert.deepEqual(parseSqlResult("INSERT 1 (id=3)\n"),
+      { columns: [], rows: [], summary: "INSERT 1 (id=3)" });
+    assert.deepEqual(parseSqlResult(""), { columns: [], rows: [], summary: "" });
+    const sqlInputNode = findNode(root, "input", "sql-input");
+    assert.ok(sqlInputNode);
+    sqlInputNode.dispatch("input", { target: { value: "SELECT * FROM users WHERE id = 2;" } });
+    buttons[2].dispatch("click", {});
+    await waitFor(() => findNode(root, "div", "sql-result") !== null, "SQL result table");
+    const cells = [];
+    (function collectCells(node) {
+      if (node.type === "td") cells.push(node.textContent);
+      for (const child of node.children || []) collectCells(child);
+    }(findNode(root, "div", "sql-result")));
+    assert.deepEqual(cells, ["2", "Lee", "lee@example.com", "25"]);
+    assert.equal(findNode(root, "p", "sql-summary").textContent, "(1 row, index lookup)");
+    assert.match(findNode(root, "p", "sql-source").textContent, /30초 동안 캐시/);
+    // 같은 문장을 다시 실행하면 cache에서 왔다고 표시한다.
+    buttons[2].dispatch("click", {});
+    await waitFor(() => /캐시에서 읽었습니다/.test(findNode(root, "p", "sql-source").textContent),
+      "SQL cache hit label");
+    assert.equal(findNode(root, "p", "server-ip-value"), valueNode);
+    console.log("PASS 9: Mini React ran SQL through the gateway and rendered the result table");
     console.log("E2E mode: RESP-compatible in-process Redis/DBMS fixtures (C daemons/WAL not started)");
-    console.log("All 6 integration scenarios passed.");
+    console.log("All 9 integration scenarios passed.");
   } finally {
     if (gateway !== null) await gateway.close();
+    if (sqlService !== undefined) await sqlService.close();
     if (dbmsService !== undefined) await dbmsService.close();
     if (redisService !== undefined) await redisService.close();
   }

@@ -14,10 +14,16 @@
 #include <strings.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/time.h>
+#include <time.h>
 #include <unistd.h>
 
 #define CLIENT_INPUT_CAPACITY (64u * 1024u)
 #define CLIENT_OUTPUT_CAPACITY (1024u * 1024u)
+/* 능동 만료(만료된 key 청소)와 snapshot 저장을 이 간격(밀리초)마다 한 번씩만 한다. */
+#define EXPIRY_SWEEP_INTERVAL_MS 1000LL
+/* 받을 수 있는 가장 긴 TTL(밀리초, 약 31년). 만료 시각 계산이 넘치지 않게 막는다. */
+#define MAX_TTL_MS (1000LL * 1000LL * 1000LL * 1000LL)
 
 typedef struct Client {
     int fd;
@@ -85,11 +91,76 @@ static int append_error(Client *client, const char *message)
            append_bytes(client, "\r\n", 2) != 0 ? -1 : 0;
 }
 
+/* SIGINT · SIGTERM을 받으면 1이 된다. signal handler는 이 변수만 건드린다. */
+static volatile sig_atomic_t stop_requested = 0;
+/* 마지막 snapshot 이후 key가 바뀌었으면 1. 바뀐 것이 없으면 파일을 다시 쓰지 않는다. */
+static int table_dirty = 0;
+
+static void handle_stop_signal(int signal_number)
+{
+    (void)signal_number;
+    stop_requested = 1;
+}
+
+/* 벽시계(1970년부터의 밀리초). 재시작해도 이어지는 시각이라 snapshot의 만료 시각에 쓴다. */
+static long long wall_now_ms(void)
+{
+    struct timespec now;
+
+    if (clock_gettime(CLOCK_REALTIME, &now) != 0) {
+        return 0;
+    }
+    return (long long)now.tv_sec * 1000LL + now.tv_nsec / 1000000L;
+}
+
+/* 벽시계를 사람이 바꿔도 뒤로 가지 않는 시계(monotonic clock)의 밀리초. TTL 계산에 쓴다. */
+static long long now_ms(void)
+{
+    struct timespec now;
+
+    if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
+        return 1;
+    }
+    /* +1: 부팅 직후에도 값이 HT_NO_EXPIRY(0)보다 크도록 한다. */
+    return (long long)now.tv_sec * 1000LL + now.tv_nsec / 1000000L + 1;
+}
+
+static int append_integer(Client *client, long long number)
+{
+    char reply[32];
+    int length = snprintf(reply, sizeof(reply), ":%lld\r\n", number);
+
+    if (length < 0 || (size_t)length >= sizeof(reply)) {
+        return -1;
+    }
+    return append_bytes(client, reply, (size_t)length);
+}
+
+/* 양의 정수 TTL 문자열을 밀리초로 바꾼다. 성공하면 0, 숫자가 아니거나 범위를 벗어나면 -1. */
+static int parse_ttl_ms(const char *text, long long unit_ms, long long *ttl_ms)
+{
+    char *end = NULL;
+    long long amount;
+
+    if (text[0] == '\0') {
+        return -1;
+    }
+    errno = 0;
+    amount = strtoll(text, &end, 10);
+    if (errno != 0 || *end != '\0' || amount <= 0 || amount > MAX_TTL_MS / unit_ms) {
+        return -1;
+    }
+    *ttl_ms = amount * unit_ms;
+    return 0;
+}
+
 static int dispatch_command(HashTable *table, Client *client,
                             const RespCommand *command)
 {
     const char *value;
     int result;
+    long long now = now_ms();
+    long long ttl_ms;
 
     if (strcasecmp(command->argv[0], "PING") == 0) {
         if (command->argc == 1) {
@@ -102,12 +173,31 @@ static int dispatch_command(HashTable *table, Client *client,
     }
 
     if (strcasecmp(command->argv[0], "SET") == 0) {
-        if (command->argc != 3) {
+        long long expires_at_ms = HT_NO_EXPIRY;
+
+        if (command->argc != 3 && command->argc != 5) {
             return append_error(client, "wrong number of arguments for 'set'");
         }
-        if (ht_set(table, command->argv[1], command->argv[2]) != 0) {
+        if (command->argc == 5) {
+            long long unit_ms;
+
+            if (strcasecmp(command->argv[3], "EX") == 0) {
+                unit_ms = 1000LL;
+            } else if (strcasecmp(command->argv[3], "PX") == 0) {
+                unit_ms = 1LL;
+            } else {
+                return append_error(client, "syntax error");
+            }
+            if (parse_ttl_ms(command->argv[4], unit_ms, &ttl_ms) != 0) {
+                return append_error(client, "invalid expire time in 'set'");
+            }
+            expires_at_ms = now + ttl_ms;
+        }
+        if (ht_set_with_expiry(table, command->argv[1], command->argv[2],
+                               expires_at_ms) != 0) {
             return append_error(client, "out of memory");
         }
+        table_dirty = 1;
         return append_bytes(client, "+OK\r\n", 5);
     }
 
@@ -115,7 +205,8 @@ static int dispatch_command(HashTable *table, Client *client,
         if (command->argc != 2) {
             return append_error(client, "wrong number of arguments for 'get'");
         }
-        value = ht_get(table, command->argv[1]);
+        /* 만료된 key는 여기서 지워지고, 없는 key와 똑같이 응답한다. */
+        value = ht_get_at(table, command->argv[1], now);
         if (value == NULL) {
             return append_bytes(client, "$-1\r\n", 5);
         }
@@ -126,11 +217,63 @@ static int dispatch_command(HashTable *table, Client *client,
         if (command->argc != 2) {
             return append_error(client, "wrong number of arguments for 'del'");
         }
+        /* 이미 만료된 key를 먼저 지워서, 그런 key에 대한 DEL이 0을 답하게 한다. */
+        (void)ht_get_at(table, command->argv[1], now);
         result = ht_delete(table, command->argv[1]);
         if (result < 0) {
             return append_error(client, "invalid delete request");
         }
+        if (result == 1) {
+            table_dirty = 1;
+        }
         return append_bytes(client, result == 1 ? ":1\r\n" : ":0\r\n", 4);
+    }
+
+    if (strcasecmp(command->argv[0], "EXPIRE") == 0 ||
+        strcasecmp(command->argv[0], "PEXPIRE") == 0) {
+        int is_seconds = strcasecmp(command->argv[0], "EXPIRE") == 0;
+
+        if (command->argc != 3) {
+            return append_error(client, "wrong number of arguments for 'expire'");
+        }
+        if (parse_ttl_ms(command->argv[2], is_seconds ? 1000LL : 1LL, &ttl_ms) != 0) {
+            return append_error(client, "invalid expire time in 'expire'");
+        }
+        result = ht_expire_at(table, command->argv[1], now + ttl_ms, now);
+        if (result < 0) {
+            return append_error(client, "invalid expire request");
+        }
+        if (result == 1) {
+            table_dirty = 1;
+        }
+        return append_integer(client, result);
+    }
+
+    if (strcasecmp(command->argv[0], "TTL") == 0 ||
+        strcasecmp(command->argv[0], "PTTL") == 0) {
+        if (command->argc != 2) {
+            return append_error(client, "wrong number of arguments for 'ttl'");
+        }
+        ttl_ms = ht_ttl_ms(table, command->argv[1], now);
+        if (ttl_ms >= 0 && strcasecmp(command->argv[0], "TTL") == 0) {
+            /* 올림한다. 아직 살아 있는 key가 0초로 보이지 않게 하기 위해서다. */
+            ttl_ms = (ttl_ms + 999LL) / 1000LL;
+        }
+        return append_integer(client, ttl_ms);
+    }
+
+    if (strcasecmp(command->argv[0], "PERSIST") == 0) {
+        if (command->argc != 2) {
+            return append_error(client, "wrong number of arguments for 'persist'");
+        }
+        result = ht_persist(table, command->argv[1], now);
+        if (result < 0) {
+            return append_error(client, "invalid persist request");
+        }
+        if (result == 1) {
+            table_dirty = 1;
+        }
+        return append_integer(client, result);
     }
 
     return append_error(client, "unknown command");
@@ -201,10 +344,30 @@ static int accept_clients(int listener, Client **clients)
 
 int server_run(HashTable *table)
 {
+    return server_run_with_snapshot(table, NULL);
+}
+
+/* key가 바뀌었을 때만 snapshot 파일을 다시 쓴다. 실패하면 다음 간격에 다시 시도한다. */
+static void save_snapshot_if_dirty(HashTable *table, const char *snapshot_path)
+{
+    if (snapshot_path == NULL || !table_dirty) {
+        return;
+    }
+    if (ht_save(table, snapshot_path, now_ms(), wall_now_ms()) >= 0) {
+        table_dirty = 0;
+    } else {
+        perror("snapshot save");
+    }
+}
+
+int server_run_with_snapshot(HashTable *table, const char *snapshot_path)
+{
+    struct sigaction stop_action;
     int listener;
     int reuse = 1;
     struct sockaddr_in address;
     Client *clients = NULL;
+    long long last_sweep_ms = now_ms();
 
     if (table == NULL) {
         errno = EINVAL;
@@ -212,6 +375,24 @@ int server_run(HashTable *table)
     }
     /* A peer closing during send must not terminate the whole server. */
     (void)signal(SIGPIPE, SIG_IGN);
+    /* SA_RESTART를 주지 않는다. 그래야 신호가 오면 select가 EINTR로 깨어나 종료 여부를 확인한다. */
+    memset(&stop_action, 0, sizeof(stop_action));
+    stop_action.sa_handler = handle_stop_signal;
+    sigemptyset(&stop_action.sa_mask);
+    (void)sigaction(SIGINT, &stop_action, NULL);
+    (void)sigaction(SIGTERM, &stop_action, NULL);
+    stop_requested = 0;
+    table_dirty = 0;
+
+    if (snapshot_path != NULL) {
+        long loaded = ht_load(table, snapshot_path, now_ms(), wall_now_ms());
+        if (loaded < 0) {
+            fprintf(stderr, "snapshot %s is damaged; starting empty\n", snapshot_path);
+        } else {
+            printf("Loaded %ld keys from %s.\n", loaded, snapshot_path);
+            fflush(stdout);
+        }
+    }
     listener = socket(AF_INET, SOCK_STREAM, 0);
     if (listener < 0) {
         return -1;
@@ -232,12 +413,14 @@ int server_run(HashTable *table)
         return -1;
     }
 
-    for (;;) {
+    while (!stop_requested) {
         fd_set read_fds;
         fd_set write_fds;
         int max_fd = listener;
         int ready;
         Client *client;
+        struct timeval timeout;
+        long long loop_now;
 
         FD_ZERO(&read_fds);
         FD_ZERO(&write_fds);
@@ -255,12 +438,27 @@ int server_run(HashTable *table)
             }
         }
 
-        ready = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL);
+        /* 요청이 없어도 간격마다 한 번은 깨어나, 만료된 key를 지우고 snapshot을 쓴다. */
+        timeout.tv_sec = (time_t)(EXPIRY_SWEEP_INTERVAL_MS / 1000LL);
+        timeout.tv_usec = 0;
+        ready = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
         if (ready < 0) {
             if (errno == EINTR) {
                 continue;
             }
             break;
+        }
+
+        loop_now = now_ms();
+        if (loop_now - last_sweep_ms >= EXPIRY_SWEEP_INTERVAL_MS) {
+            if (ht_purge_expired(table, loop_now) > 0) {
+                table_dirty = 1;
+            }
+            save_snapshot_if_dirty(table, snapshot_path);
+            last_sweep_ms = loop_now;
+        }
+        if (ready == 0) {
+            continue;
         }
 
         if (FD_ISSET(listener, &read_fds) && accept_clients(listener, &clients) != 0) {
@@ -322,5 +520,10 @@ int server_run(HashTable *table)
         remove_client(&clients, clients);
     }
     close(listener);
+    /* 종료 신호로 끝난 경우: 마지막 변경까지 파일에 남기고 정상 종료(0)로 알린다. */
+    if (stop_requested) {
+        save_snapshot_if_dirty(table, snapshot_path);
+        return 0;
+    }
     return -1;
 }

@@ -7,6 +7,8 @@ const renderApi = typeof module !== "undefined" && module.exports
 const TEXT_ELEMENT = renderApi.TEXT_ELEMENT;
 const render = renderApi.render;
 const setDomProp = renderApi.setDomProp;
+// render.js가 붙인 것과 같은 "batch로 감싼 handler"를 써야 뗄 때 짝이 맞는다.
+const toBatchedListener = renderApi.toBatchedListener;
 
 function isEventProp(name) {
   return name.slice(0, 2).toLowerCase() === "on";
@@ -19,7 +21,7 @@ function eventName(name) {
 function removeProp(dom, name, value) {
   if (isEventProp(name)) {
     if (typeof value === "function") {
-      dom.removeEventListener(eventName(name), value);
+      dom.removeEventListener(eventName(name), toBatchedListener(value));
     }
     return;
   }
@@ -37,10 +39,10 @@ function removeProp(dom, name, value) {
 function setProp(dom, name, value, previousValue) {
   if (isEventProp(name)) {
     if (typeof previousValue === "function") {
-      dom.removeEventListener(eventName(name), previousValue);
+      dom.removeEventListener(eventName(name), toBatchedListener(previousValue));
     }
     if (typeof value === "function") {
-      dom.addEventListener(eventName(name), value);
+      dom.addEventListener(eventName(name), toBatchedListener(value));
     }
     return;
   }

@@ -71,8 +71,9 @@ int main(int argc, char **argv)
     if (argc == 1) {
         return run_hash_table_checks();
     }
-    if (argc != 2 || strcmp(argv[1], "--server") != 0) {
-        fprintf(stderr, "Usage: %s [--server]\n", argv[0]);
+    /* --server 뒤에 파일 경로를 주면 그 파일을 snapshot으로 쓴다(다운 대비). */
+    if ((argc != 2 && argc != 3) || strcmp(argv[1], "--server") != 0) {
+        fprintf(stderr, "Usage: %s [--server [snapshot_file]]\n", argv[0]);
         return 2;
     }
 
@@ -84,7 +85,8 @@ int main(int argc, char **argv)
 
     printf("Mini-Redis listening on port %u. Press Ctrl+C to stop.\n",
            SERVER_DEFAULT_PORT);
-    result = server_run(table);
+    fflush(stdout);
+    result = server_run_with_snapshot(table, argc == 3 ? argv[2] : NULL);
     if (result != 0) {
         perror("server_run");
     }

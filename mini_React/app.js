@@ -12,6 +12,29 @@ const { useState, useEffect } = hookApi;
 
 const CACHE_KEY = "server:ip";
 
+// Stateless children: they call no hooks and only read the props the root passes down.
+function StatusMessage(props) {
+  return createElement("p", { id: "cache-status", role: "status" }, props.message);
+}
+
+function ServerIpForm(props) {
+  return createElement("div", { className: "server-ip-form" },
+    createElement("label", { htmlFor: "server-ip-input" }, "server:ip 값"),
+    createElement("input", {
+      id: "server-ip-input",
+      value: props.draft,
+      onInput: props.onInput,
+    }),
+    createElement("button", { type: "button", onClick: props.onSave }, "저장"),
+    createElement("button", { type: "button", onClick: props.onDelete }, "삭제"),
+  );
+}
+
+function ServerIpValue(props) {
+  return createElement("p", { id: "server-ip-value" }, `현재 저장 값: ${props.value}`);
+}
+
+// Root component: the only place that owns state and calls hooks (Lifting State Up).
 function App(props) {
   const apiBase = (props.apiBase || "/api").replace(/\/$/, "");
   const fetcher = props.fetch || globalThis.fetch;
@@ -76,20 +99,18 @@ function App(props) {
 
   return createElement("main", { className: "cache-app" },
     createElement("h1", null, "Mini React · Redis · DBMS 통합 관리"),
-    createElement("p", { id: "cache-status", role: "status" }, status),
-    createElement("label", { htmlFor: "server-ip-input" }, "server:ip 값"),
-    createElement("input", {
-      id: "server-ip-input",
-      value: draft,
+    createElement(StatusMessage, { message: status }),
+    createElement(ServerIpForm, {
+      draft,
       onInput: handleInput,
+      onSave: handleSave,
+      onDelete: handleDelete,
     }),
-    createElement("button", { type: "button", onClick: handleSave }, "저장"),
-    createElement("button", { type: "button", onClick: handleDelete }, "삭제"),
-    createElement("p", { id: "server-ip-value" }, `현재 저장 값: ${serverIp}`),
+    createElement(ServerIpValue, { value: serverIp }),
   );
 }
 
-const api = { App, CACHE_KEY };
+const api = { App, StatusMessage, ServerIpForm, ServerIpValue, CACHE_KEY };
 if (typeof module !== "undefined" && module.exports) module.exports = api;
 if (typeof globalThis !== "undefined") globalThis.MiniReactApp = api;
 })();

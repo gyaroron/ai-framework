@@ -2,6 +2,16 @@
 "use strict";
 
 const componentInstances = new WeakMap();
+let activeRenderDepth = 0;
+
+function runInsideComponent(work) {
+  activeRenderDepth += 1;
+  try {
+    return work();
+  } finally {
+    activeRenderDepth -= 1;
+  }
+}
 
 function hookApi() {
   return typeof module !== "undefined" && module.exports
@@ -41,8 +51,10 @@ class FunctionComponent {
     this.vnode = null;
     this.renderedVNode = null;
     this.hooks = [];
+    this.isRoot = activeRenderDepth === 0;
     this._hookInstance = hookApi().createHookInstance(component, this.props, null);
     this._hookInstance.hooks = this.hooks;
+    this._hookInstance.isRoot = this.isRoot;
     this._hookInstance.schedule = () => this._scheduleUpdate();
   }
 
@@ -54,7 +66,9 @@ class FunctionComponent {
     this.renderedVNode = hooks.renderWithHooks(
       this._hookInstance, this.component, this.props,
     );
-    this.dom = (renderFn || renderApi().render)(this.renderedVNode, parentDom);
+    this.dom = runInsideComponent(
+      () => (renderFn || renderApi().render)(this.renderedVNode, parentDom),
+    );
     hooks.flushEffects(this._hookInstance);
     return this.dom;
   }
@@ -69,9 +83,9 @@ class FunctionComponent {
     const nextRendered = hooks.renderWithHooks(
       this._hookInstance, this.component, nextPropsValue,
     );
-    this.dom = (diffFn || diffApi().diff)(
+    this.dom = runInsideComponent(() => (diffFn || diffApi().diff)(
       parentDom, currentDom, this.renderedVNode, nextRendered,
-    );
+    ));
     this.parentDom = parentDom;
     this.props = nextPropsValue;
     this.vnode = { type: this.component, props: this.props };
@@ -84,6 +98,29 @@ class FunctionComponent {
     if (this.dom === null || this.renderedVNode === null) return;
     this.update(this.props);
   }
+}
+
+function unmount(element) {
+  if (element == null) return;
+  if (typeof element.type === "function") {
+    const instance = getComponentInstance(element);
+    if (!instance || instance.renderedVNode === null) return;
+    const rendered = instance.renderedVNode;
+    // Disable updates before invoking user cleanup, which can call setters.
+    instance.dom = null;
+    instance.renderedVNode = null;
+    instance.parentDom = null;
+    instance._hookInstance.schedule = null;
+    instance._hookInstance.pendingEffects = [];
+    unmount(rendered);
+    for (const hook of instance.hooks) {
+      const cleanup = hook.cleanup;
+      hook.cleanup = undefined;
+      if (typeof cleanup === "function") cleanup();
+    }
+    return;
+  }
+  for (const child of (element.props && element.props.children) || []) unmount(child);
 }
 
 function renderComponent(element, container, render) {
@@ -119,7 +156,7 @@ function updateComponent(parentDom, currentDom, oldElement, newElement, diff) {
   return updatedDom;
 }
 
-const api = { FunctionComponent, renderComponent, updateComponent, getComponentInstance };
+const api = { FunctionComponent, renderComponent, updateComponent, getComponentInstance, unmount };
 if (typeof module !== "undefined" && module.exports) {
   module.exports = api;
 }

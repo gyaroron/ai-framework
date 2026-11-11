@@ -144,6 +144,19 @@
       let history = [currentVNodes];
       let historyIndex = 0;
 
+      // MutationObserver records every real DOM change made inside the actual area.
+      const hasMutationObserver = typeof MutationObserver === "function";
+      const actualObserver = hasMutationObserver ? new MutationObserver(() => {}) : null;
+      if (actualObserver !== null) {
+        actualObserver.observe(actualSurface, {
+          childList: true, attributes: true, characterData: true, subtree: true,
+        });
+      }
+
+      function takeMutationCount() {
+        return actualObserver === null ? null : actualObserver.takeRecords().length;
+      }
+
       function syncCodeEditorFromDom() {
         testCodeEditor.value = testSurface.innerHTML.trim();
       }
@@ -181,14 +194,19 @@
         const previousHistory = history;
         const previousIndex = historyIndex;
         try {
+          takeMutationCount();
           diffChildren(actualSurface, previous, nextVNodes);
+          const mutationCount = takeMutationCount();
           vnodeListToTestArea(nextVNodes);
           currentVNodes = nextVNodes;
           history = nextHistory;
           historyIndex = nextIndex;
           updateHistoryControls(label);
           actualBadge.textContent = `최상위 요소 ${actualSurface.children.length}개`;
-          status.textContent = `${label}: 두 영역과 History 반영 완료`;
+          const mutationNote = mutationCount === null
+            ? ""
+            : ` · 실제 영역 DOM 변경 ${mutationCount}건 (MutationObserver)`;
+          status.textContent = `${label}: 두 영역과 History 반영 완료${mutationNote}`;
           return true;
         } catch (error) {
           currentVNodes = previous;
@@ -198,6 +216,7 @@
             actualSurface.replaceChildren();
             for (const vnode of previous) render(vnode, actualSurface);
             vnodeListToTestArea(previous);
+            takeMutationCount();
             updateHistoryControls(`복구 #${previousIndex}`);
             actualBadge.textContent = '이전 상태 복구';
             status.textContent = `변경 취소 및 이전 상태 복구: ${error.message}`;

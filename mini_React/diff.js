@@ -73,6 +73,12 @@ function childNodes(dom) {
   return dom.childNodes || dom.children || [];
 }
 
+function unmount(vnode) {
+  const components = typeof module !== "undefined" && module.exports
+    ? require("./component") : globalThis.MiniReactComponent;
+  if (components) components.unmount(vnode);
+}
+
 function insertBefore(parent, newChild, referenceChild) {
   if (typeof parent.insertBefore === "function") {
     return parent.insertBefore(newChild, referenceChild);
@@ -147,6 +153,7 @@ function diffChildren(parentDom, oldChildren, newChildren) {
     // 1. Remove unused old children first
     for (const [key, entry] of oldKeyMap) {
       if (!usedKeys.has(key)) {
+        unmount(entry.vnode);
         if (entry.dom && (entry.dom.parentNode === parentDom || (parentDom.children && parentDom.children.includes(entry.dom)))) {
           parentDom.removeChild(entry.dom);
         }
@@ -209,6 +216,7 @@ function diff(parentDom, currentDom, oldVNode, newVNode) {
     return render(newVNode, parentDom);
   }
   if (newVNode == null) {
+    unmount(oldVNode);
     parentDom.removeChild(currentDom);
     return null;
   }
@@ -227,6 +235,7 @@ function diff(parentDom, currentDom, oldVNode, newVNode) {
       ? document.createDocumentFragment()
       : { children: [], appendChild(node) { this.children.push(node); return node; } };
     const newDom = render(newVNode, temporaryContainer);
+    unmount(oldVNode);
     parentDom.replaceChild(newDom, currentDom);
     return newDom;
   }

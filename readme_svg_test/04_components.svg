@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="App이 state를 갖고 StatusMessage, ServerIpForm, ServerIpValue, SqlPanel에 props를 내려 주며, SqlPanel은 SqlResultTable에 table을 내려 준다">
+  <style>
+    text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .flow { stroke-dasharray: 8 8; animation: dash 0.9s linear infinite; }
+    .app { animation: pulse 4s ease-in-out infinite; }
+    .c1, .c2, .c3, .c4, .c5 { animation: lit 5s ease-in-out infinite; }
+    .c2 { animation-delay: .5s; } .c3 { animation-delay: 1s; } .c4 { animation-delay: 1.5s; } .c5 { animation-delay: 2.2s; }
+    @keyframes dash { from { stroke-dashoffset: 16; } to { stroke-dashoffset: 0; } }
+    @keyframes pulse { 0%, 100% { stroke-width: 2; } 50% { stroke-width: 6; } }
+    @keyframes lit { 0%, 100% { stroke-width: 2; } 12% { stroke-width: 6; } 30% { stroke-width: 2; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <marker id="ao" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
+  <text x="40" y="72" font-size="32" font-weight="800" fill="#f8fafc">컴포넌트로 나누고 props로 연결합니다</text>
+  <text x="40" y="110" font-size="20" fill="#cbd5e1">App이 state를 갖고, 자식 컴포넌트는 받은 props로 화면의 모습을 표현합니다</text>
+
+  <rect class="app" x="380" y="140" width="440" height="110" rx="14" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  <text class="mono" x="600" y="190" font-size="34" font-weight="700" fill="#bfdbfe" text-anchor="middle">App</text>
+  <text x="600" y="228" font-size="20" fill="#e2e8f0" text-anchor="middle">state 6개 · hook을 부르는 유일한 곳</text>
+
+  <line class="flow" x1="600" y1="250" x2="600" y2="340" stroke="#94a3b8" stroke-width="3"/>
+  <line class="flow" x1="160" y1="340" x2="1021" y2="340" stroke="#94a3b8" stroke-width="3"/>
+  <line class="flow" x1="160" y1="340" x2="160" y2="422" stroke="#94a3b8" stroke-width="3" marker-end="url(#ao)"/>
+  <line class="flow" x1="447" y1="340" x2="447" y2="422" stroke="#94a3b8" stroke-width="3" marker-end="url(#ao)"/>
+  <line class="flow" x1="734" y1="340" x2="734" y2="422" stroke="#94a3b8" stroke-width="3" marker-end="url(#ao)"/>
+  <line class="flow" x1="1021" y1="340" x2="1021" y2="422" stroke="#94a3b8" stroke-width="3" marker-end="url(#ao)"/>
+  <text x="624" y="304" font-size="20" fill="#cbd5e1">props가 위에서 아래로 내려갑니다</text>
+
+  <rect class="c1" x="30" y="430" width="260" height="140" rx="12" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text class="mono" x="160" y="474" font-size="22" font-weight="700" fill="#fed7aa" text-anchor="middle">StatusMessage</text>
+  <text class="mono" x="160" y="520" font-size="20" fill="#e2e8f0" text-anchor="middle">message</text>
+
+  <rect class="c2" x="317" y="430" width="260" height="140" rx="12" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text class="mono" x="447" y="474" font-size="22" font-weight="700" fill="#fed7aa" text-anchor="middle">ServerIpForm</text>
+  <text class="mono" x="447" y="512" font-size="20" fill="#e2e8f0" text-anchor="middle">draft · onInput</text>
+  <text class="mono" x="447" y="542" font-size="20" fill="#e2e8f0" text-anchor="middle">onSave · onDelete</text>
+
+  <rect class="c3" x="604" y="430" width="260" height="140" rx="12" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text class="mono" x="734" y="474" font-size="22" font-weight="700" fill="#fed7aa" text-anchor="middle">ServerIpValue</text>
+  <text class="mono" x="734" y="520" font-size="20" fill="#e2e8f0" text-anchor="middle">value</text>
+
+  <rect class="c4" x="891" y="430" width="260" height="140" rx="12" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text class="mono" x="1021" y="474" font-size="22" font-weight="700" fill="#fed7aa" text-anchor="middle">SqlPanel</text>
+  <text class="mono" x="1021" y="512" font-size="20" fill="#e2e8f0" text-anchor="middle">sql · onInput · onRun</text>
+  <text class="mono" x="1021" y="542" font-size="20" fill="#e2e8f0" text-anchor="middle">sourceText · table</text>
+
+  <line class="flow" x1="1021" y1="570" x2="1021" y2="612" stroke="#94a3b8" stroke-width="3" marker-end="url(#ao)"/>
+  <rect class="c5" x="891" y="620" width="260" height="100" rx="12" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text class="mono" x="1021" y="662" font-size="22" font-weight="700" fill="#fed7aa" text-anchor="middle">SqlResultTable</text>
+  <text class="mono" x="1021" y="696" font-size="20" fill="#e2e8f0" text-anchor="middle">table</text>
+
+  <text x="40" y="640" font-size="22" fill="#f8fafc">App만 state와 hook을 갖습니다.</text>
+  <text x="40" y="676" font-size="22" fill="#f8fafc">자식 5개는 받은 props만 읽어 화면의 모습을 표현합니다.</text>
+  <text x="40" y="714" font-size="20" fill="#94a3b8">주황 칸의 둘째 줄부터는 그 컴포넌트가 받는 props 이름입니다.</text>
+</svg>

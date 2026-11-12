@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="측정값 세 가지: 줄을 옮긴 횟수 999번에서 1번, 계산 시간 2978밀리초에서 23밀리초, 기록 메모리 206.9메가바이트에서 22.7메가바이트">
+  <style>
+    text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .bar { transform-box: fill-box; transform-origin: left center; animation: grow 8s ease-out infinite; }
+    .big { animation: pop 8s ease-out infinite; }
+    @keyframes grow { 0%, 100% { transform: scaleX(1); } 4% { transform: scaleX(.05); } 20% { transform: scaleX(1); } }
+    @keyframes pop { 0%, 100% { opacity: 1; } 4%, 18% { opacity: .35; } 28% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+
+  <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
+  <text x="40" y="72" font-size="32" font-weight="800" fill="#f8fafc">비용을 재고 줄였습니다</text>
+  <text x="40" y="110" font-size="20" fill="#cbd5e1">sikhesung 브랜치의 측정값 · 노트북 한 대, Node 24, Chrome 한 종류</text>
+
+  <rect x="30" y="140" width="360" height="520" rx="16" fill="#111c33" stroke="#334155"/>
+  <text x="50" y="190" font-size="26" font-weight="800" fill="#f8fafc">줄을 옮긴 횟수</text>
+  <text x="50" y="228" font-size="20" fill="#94a3b8">1,000줄에서 맨 아래 줄을</text>
+  <text x="50" y="256" font-size="20" fill="#94a3b8">맨 위로 올릴 때</text>
+  <text x="50" y="312" font-size="20" fill="#cbd5e1">앞에서부터 옮기는 방식</text>
+  <rect class="bar" x="50" y="324" width="220" height="20" rx="4" fill="#64748b"/>
+  <text x="370" y="342" font-size="22" font-weight="700" fill="#e2e8f0" text-anchor="end">999번</text>
+  <text x="50" y="398" font-size="20" fill="#fdba74">miniReact</text>
+  <rect class="bar b2" x="50" y="410" width="4" height="20" rx="2" fill="#fb923c"/>
+  <text x="370" y="428" font-size="22" font-weight="700" fill="#fdba74" text-anchor="end">1번</text>
+  <text class="big" x="210" y="530" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">999번 → 1번</text>
+  <text x="50" y="604" font-size="20" fill="#cbd5e1">순서가 맞는 999줄은 그대로</text>
+  <text x="50" y="632" font-size="20" fill="#cbd5e1">두고, 1줄만 옮깁니다.</text>
+
+  <rect x="420" y="140" width="360" height="520" rx="16" fill="#111c33" stroke="#334155"/>
+  <text x="440" y="190" font-size="26" font-weight="800" fill="#f8fafc">계산에 걸린 시간</text>
+  <text x="440" y="228" font-size="20" fill="#94a3b8">5만 줄의 순서를</text>
+  <text x="440" y="256" font-size="20" fill="#94a3b8">거꾸로 뒤집을 때</text>
+  <text x="440" y="312" font-size="20" fill="#cbd5e1">예전 방식</text>
+  <rect class="bar" x="440" y="324" width="220" height="20" rx="4" fill="#64748b"/>
+  <text x="760" y="342" font-size="22" font-weight="700" fill="#e2e8f0" text-anchor="end">2,978 ms</text>
+  <text x="440" y="398" font-size="20" fill="#fdba74">지금 방식</text>
+  <rect class="bar b2" x="440" y="410" width="4" height="20" rx="2" fill="#fb923c"/>
+  <text x="760" y="428" font-size="22" font-weight="700" fill="#fdba74" text-anchor="end">23 ms</text>
+  <text class="big" x="600" y="530" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">127배 빠름</text>
+  <text x="440" y="604" font-size="20" fill="#cbd5e1">1 ms는 1초를 1,000으로</text>
+  <text x="440" y="632" font-size="20" fill="#cbd5e1">나눈 시간입니다.</text>
+
+  <rect x="810" y="140" width="360" height="520" rx="16" fill="#111c33" stroke="#334155"/>
+  <text x="830" y="190" font-size="26" font-weight="800" fill="#f8fafc">기록에 쓰는 메모리</text>
+  <text x="830" y="228" font-size="20" fill="#94a3b8">1,000줄 화면을</text>
+  <text x="830" y="256" font-size="20" fill="#94a3b8">100번 고친 기록</text>
+  <text x="830" y="312" font-size="20" fill="#cbd5e1">화면 전체를 매번 저장</text>
+  <rect class="bar" x="830" y="324" width="220" height="20" rx="4" fill="#64748b"/>
+  <text x="1150" y="342" font-size="22" font-weight="700" fill="#e2e8f0" text-anchor="end">206.9 MB</text>
+  <text x="830" y="398" font-size="20" fill="#fdba74">바뀐 부분만 저장</text>
+  <rect class="bar b2" x="830" y="410" width="24" height="20" rx="4" fill="#fb923c"/>
+  <text x="1150" y="428" font-size="22" font-weight="700" fill="#fdba74" text-anchor="end">22.7 MB</text>
+  <text class="big" x="990" y="530" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">9.1배 적음</text>
+  <text x="830" y="604" font-size="20" fill="#cbd5e1">화면 전체는 10번에 한 번만</text>
+  <text x="830" y="632" font-size="20" fill="#cbd5e1">저장합니다.</text>
+
+  <text x="40" y="708" font-size="20" fill="#94a3b8">비교 대상은 React 본체가 아니라, 같은 조건으로 만든 비교용 코드와 최적화 전 코드입니다.</text>
+</svg>

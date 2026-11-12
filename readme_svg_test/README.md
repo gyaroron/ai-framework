@@ -1,0 +1,95 @@
+# miniReact — 상태로 화면을 설명하다
+
+> 4분 발표용 README입니다. 발표 그림 6장과 각 장의 핵심 문장을 담았습니다.
+
+## 사용 방법
+
+1. 브라우저에서 <kbd>F11</kbd>을 눌러 전체 화면으로 바꿉니다.
+2. 아래 `시작 ›`을 누릅니다.
+3. 그림을 누르면 다음 장으로 넘어갑니다. 그림 아래 오른쪽의 `‹ 이전` · `다음 ›`으로도 이동합니다.
+
+## 구성
+
+| 장 | 내용 | 시간 |
+| --- | --- | --- |
+| [1](#1--6) | 표지: `UI = f(state)` | 10초 |
+| [2](#2--6) | 왜 React인가: 명령형(imperative)과 선언형(declarative) | 55초 |
+| [3](#3--6) | 이점 ①: state를 바꾸면 화면 세 곳이 한 번에 바뀜 | 60초 |
+| [4](#4--6) | 이점 ②: 컴포넌트(component)로 나누고 props로 연결 | 55초 |
+| [5](#5--6) | 알고리즘과 수치 (전체의 15%) | 36초 |
+| [6](#6--6) | 마무리 | 24초 |
+
+## 코드 출처
+
+| 자료 | 브랜치 | 이 발표에서 쓰는 곳 |
+| --- | --- | --- |
+| [`mini_React/app.js`](https://github.com/kimtaeg/ai-framework/blob/gyaroron_kjs/mini_React/app.js) | `gyaroron_kjs` | 2 ~ 4장: React를 쓰는 이유와 이점 |
+| [`src/lib/fenwick.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/fenwick.js) | `sikhesung` | 5장: 알고리즘 코드 |
+| [`README.md`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/README.md) | `sikhesung` | 5장: 측정값 |
+
+> [!NOTE]
+> 2 ~ 4장의 코드는 `gyaroron_kjs` 브랜치의 구현이고, 5장의 알고리즘과 측정값은 `sikhesung` 브랜치의 구현입니다. 두 브랜치는 diff를 구현한 방식이 다르므로, 5장의 측정값을 2 ~ 4장의 코드에 그대로 적용하지 않습니다.
+
+<a href="#1--6">시작 ›</a>
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
+
+###### 1 / 6
+
+<a href="#2--6"><img src="01_hero.svg" alt="miniReact 표지: 상태가 컴포넌트 함수를 거쳐 화면이 된다" width="100%"></a>
+
+<p align="right"><sub><a href="#2--6">다음 ›</a></sub></p>
+
+> 화면은 현재 상태(state)를 바탕으로 만든 결과입니다.
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
+
+###### 2 / 6
+
+<a href="#3--6"><img src="02_imperative_vs_declarative.svg" alt="명령형과 선언형 비교: 명령형은 개발자가 실제 DOM을 직접 고치고, 선언형은 miniReact가 바뀐 곳을 찾아 반영한다" width="100%"></a>
+
+<p align="right"><sub><a href="#1--6">‹ 이전</a> &nbsp;·&nbsp; <a href="#3--6">다음 ›</a></sub></p>
+
+> 명령형에서는 개발자가 DOM을 고치는 순서를 관리하고, 선언형에서는 개발자가 상태와 화면의 관계만 표현합니다.
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
+
+###### 3 / 6
+
+<a href="#4--6"><img src="03_state_fanout.svg" alt="삭제 버튼을 누르면 handleDelete가 batch 안에서 setter 세 개를 부르고, miniReact가 화면의 세 곳을 한 번에 바꾼다" width="100%"></a>
+
+<p align="right"><sub><a href="#2--6">‹ 이전</a> &nbsp;·&nbsp; <a href="#4--6">다음 ›</a></sub></p>
+
+> 개발자가 state 세 개를 바꾸면, miniReact가 그 state를 쓰는 화면 세 곳을 한 번에 바꿉니다.
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
+
+###### 4 / 6
+
+<a href="#5--6"><img src="04_components.svg" alt="App이 state를 갖고 자식 컴포넌트 네 개에 props를 내려 주며, SqlPanel은 SqlResultTable에 table을 내려 준다" width="100%"></a>
+
+<p align="right"><sub><a href="#3--6">‹ 이전</a> &nbsp;·&nbsp; <a href="#5--6">다음 ›</a></sub></p>
+
+> `App`만 state를 갖고, 자식 컴포넌트는 받은 props만 읽어 화면의 모습을 표현합니다.
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
+
+###### 5 / 6
+
+<a href="#6--6"><img src="05_numbers.svg" alt="측정값 세 가지: 줄을 옮긴 횟수 999번에서 1번, 계산 시간 2,978ms에서 23ms, 기록 메모리 206.9MB에서 22.7MB" width="100%"></a>
+
+<p align="right"><sub><a href="#4--6">‹ 이전</a> &nbsp;·&nbsp; <a href="#6--6">다음 ›</a></sub></p>
+
+> miniReact가 변경을 찾는 데에는 비용이 듭니다. 이 구현은 그 비용을 재고, 세 곳에서 줄였습니다.
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
+
+###### 6 / 6
+
+<a href="#1--6"><img src="06_closing.svg" alt="마무리: miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현이다" width="100%"></a>
+
+<p align="right"><sub><a href="#5--6">‹ 이전</a> &nbsp;·&nbsp; <a href="#1--6">처음 ↺</a></sub></p>
+
+> miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현입니다.
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>

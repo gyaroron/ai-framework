@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="마무리: miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현이다">
+  <style>
+    text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .s1, .s2, .s3 { animation: lit 6s ease-in-out infinite; }
+    .s2 { animation-delay: 2s; } .s3 { animation-delay: 4s; }
+    @keyframes lit { 0% { opacity: .45; } 5%, 30% { opacity: 1; } 36%, 100% { opacity: .45; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; opacity: 1 !important; } }
+  </style>
+
+  <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
+  <text x="600" y="150" font-size="22" font-weight="700" fill="#fb923c" letter-spacing="4" text-anchor="middle">마무리</text>
+
+  <text class="s1" x="600" y="262" font-size="42" font-weight="800" fill="#f8fafc" text-anchor="middle">miniReact는 상태로 화면을 설명하고,</text>
+  <text class="s2" x="600" y="338" font-size="42" font-weight="800" fill="#f8fafc" text-anchor="middle">필요한 변경을 찾아 적용하며,</text>
+  <text class="s3" x="600" y="414" font-size="42" font-weight="800" fill="#f8fafc" text-anchor="middle">그 과정의 비용을 측정해 줄인 구현입니다.</text>
+
+  <g class="s1">
+    <rect x="110" y="510" width="300" height="84" rx="14" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+    <text class="mono" x="260" y="561" font-size="26" font-weight="700" fill="#bfdbfe" text-anchor="middle">UI = f(state)</text>
+  </g>
+  <g class="s2">
+    <rect x="450" y="510" width="300" height="84" rx="14" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+    <text class="mono" x="600" y="561" font-size="26" font-weight="700" fill="#fed7aa" text-anchor="middle">diff → patch</text>
+  </g>
+  <g class="s3">
+    <rect x="790" y="510" width="300" height="84" rx="14" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+    <text x="940" y="561" font-size="26" font-weight="700" fill="#e2e8f0" text-anchor="middle">측정 → 검증</text>
+  </g>
+
+  <text x="600" y="676" font-size="20" fill="#94a3b8" text-anchor="middle">코드: github.com/kimtaeg/ai-framework · gyaroron_kjs 브랜치, sikhesung 브랜치</text>
+</svg>

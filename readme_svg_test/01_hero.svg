@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="miniReact: 상태(state)가 컴포넌트 함수 f를 거쳐 화면(UI)이 된다. UI = f(state)">
+  <style>
+    text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .flow { stroke-dasharray: 8 8; animation: dash 0.9s linear infinite; }
+    .dot { animation: travel 3.2s ease-in-out infinite; }
+    .ui { animation: pulse 3.2s ease-in-out infinite; }
+    @keyframes dash { from { stroke-dashoffset: 16; } to { stroke-dashoffset: 0; } }
+    @keyframes travel { 0% { transform: translateX(0); opacity: 0; } 10% { opacity: 1; } 80% { transform: translateX(340px); opacity: 1; } 90%, 100% { transform: translateX(340px); opacity: 0; } }
+    @keyframes pulse { 0%, 70% { stroke-width: 2; fill: #3b2410; } 82% { stroke-width: 6; fill: #7c3f0f; } 100% { stroke-width: 2; fill: #3b2410; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
+  <text x="600" y="130" font-size="22" font-weight="700" fill="#fb923c" letter-spacing="4" text-anchor="middle">VIRTUAL DOM · DIFF · HOOKS</text>
+  <text x="600" y="258" font-size="116" font-weight="800" fill="#f8fafc" text-anchor="middle">miniReact</text>
+  <text x="600" y="330" font-size="38" fill="#cbd5e1" text-anchor="middle">상태로 화면을 설명하다</text>
+
+  <line class="flow" x1="454" y1="480" x2="532" y2="480" stroke="#94a3b8" stroke-width="3" marker-end="url(#ah)"/>
+  <line class="flow" x1="704" y1="480" x2="782" y2="480" stroke="#94a3b8" stroke-width="3" marker-end="url(#ah)"/>
+  <circle class="dot" cx="450" cy="480" r="9" fill="#fbbf24"/>
+
+  <rect x="250" y="430" width="200" height="100" rx="16" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  <text class="mono" x="350" y="492" font-size="34" font-weight="700" fill="#bfdbfe" text-anchor="middle">state</text>
+  <rect x="540" y="430" width="160" height="100" rx="16" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+  <text class="mono" x="620" y="492" font-size="34" font-weight="700" fill="#e2e8f0" text-anchor="middle">f( )</text>
+  <rect class="ui" x="790" y="430" width="160" height="100" rx="16" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text class="mono" x="870" y="492" font-size="34" font-weight="700" fill="#fed7aa" text-anchor="middle">UI</text>
+
+  <text x="350" y="568" font-size="22" fill="#93c5fd" text-anchor="middle">상태</text>
+  <text x="620" y="568" font-size="22" fill="#cbd5e1" text-anchor="middle">컴포넌트 함수</text>
+  <text x="870" y="568" font-size="22" fill="#fdba74" text-anchor="middle">화면</text>
+  <text class="mono" x="600" y="666" font-size="36" font-weight="700" fill="#f8fafc" text-anchor="middle">UI = f(state)</text>
+</svg>

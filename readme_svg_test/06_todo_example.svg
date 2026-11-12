@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="가상의 할 일 목록 페이지와 그 코드. 추가 버튼을 누르면 setTodos 줄과 화면을 표현하는 줄이 차례로 켜지고, 화면에는 기존 두 줄은 그대로 둔 채 새 줄 하나만 추가된다">
+  <style>
+    text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .hc { animation: hc 10s linear infinite; }
+    .hs { animation: hs 10s linear infinite; }
+    .hr { animation: hr 10s linear infinite; }
+    .c2 { animation: c2 10s linear infinite; }
+    .c3 { animation: c3 10s linear infinite; }
+    .d0 { animation: d0 10s linear infinite; }
+    .d1 { animation: d1 10s linear infinite; }
+    .keep { animation: keep 10s linear infinite; }
+    .add { animation: add 10s linear infinite; }
+    .fl { animation: fl 10s linear infinite; }
+    .cur { animation: cur 10s ease-in-out infinite; }
+    @keyframes hc { 0%, 13% { opacity: 0; } 15%, 19% { opacity: 1; } 20%, 100% { opacity: 0; } }
+    @keyframes hs { 0%, 19% { opacity: 0; } 20%, 31% { opacity: 1; } 33%, 100% { opacity: 0; } }
+    @keyframes hr { 0%, 32% { opacity: 0; } 34%, 56% { opacity: 1; } 59%, 100% { opacity: 0; } }
+    @keyframes c2 { 0%, 21% { opacity: 1; } 22%, 96% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes c3 { 0%, 21% { opacity: 0; } 22%, 95% { opacity: 1; } 98%, 100% { opacity: 0; } }
+    @keyframes d0 { 0%, 56% { opacity: 1; } 58%, 95% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes d1 { 0%, 56% { opacity: 0; } 58%, 95% { opacity: 1; } 98%, 100% { opacity: 0; } }
+    @keyframes keep { 0%, 45% { opacity: 0; } 48%, 95% { opacity: 1; } 98%, 100% { opacity: 0; } }
+    @keyframes add { 0%, 56% { opacity: 0; } 58%, 95% { opacity: 1; } 98%, 100% { opacity: 0; } }
+    @keyframes fl { 0%, 56% { opacity: 0; } 58%, 70% { opacity: 1; } 76%, 100% { opacity: 0; } }
+    @keyframes cur { 0% { transform: translate(0, 0); } 13%, 22% { transform: translate(-416px, -46px); } 40%, 100% { transform: translate(0, 0); } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } .hc, .hs, .hr, .c2, .d0, .fl { opacity: 0; } }
+  </style>
+
+  <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
+  <text x="40" y="66" font-size="32" font-weight="800" fill="#f8fafc">바뀐 줄만 화면에 추가됩니다</text>
+  <text x="40" y="102" font-size="20" fill="#cbd5e1">가상의 할 일 목록 페이지 · 왼쪽 코드가 오른쪽 화면을 만듭니다</text>
+
+  <rect x="20" y="126" width="590" height="560" rx="16" fill="#111c33" stroke="#334155"/>
+  <text x="40" y="164" font-size="20" font-weight="700" fill="#93c5fd">TodoApp (설명을 위해 만든 가상의 예시)</text>
+
+  <rect class="hs" x="30" y="284" width="570" height="68" rx="6" fill="#1e40af"/>
+  <rect class="hr" x="30" y="352" width="570" height="102" rx="6" fill="#7c3f0f"/>
+  <rect class="hc" x="30" y="454" width="570" height="34" rx="6" fill="#334155"/>
+
+  <g class="mono" font-size="20" fill="#e2e8f0">
+    <text x="44" y="206"><tspan fill="#c084fc">function</tspan> <tspan fill="#60a5fa">TodoApp</tspan>() {</text>
+    <text x="66" y="240"><tspan fill="#c084fc">const</tspan> [todos, <tspan fill="#60a5fa">setTodos</tspan>] =</text>
+    <text x="88" y="274"><tspan fill="#60a5fa">useState</tspan>([<tspan fill="#86efac">'우유 사기'</tspan>, <tspan fill="#86efac">'운동하기'</tspan>]);</text>
+    <text x="66" y="308"><tspan fill="#c084fc">const</tspan> add = () =&gt;</text>
+    <text x="88" y="342"><tspan fill="#60a5fa">setTodos</tspan>([...todos, <tspan fill="#86efac">'책 읽기'</tspan>]);</text>
+    <text x="66" y="376"><tspan fill="#c084fc">return</tspan> <tspan fill="#60a5fa">h</tspan>(<tspan fill="#86efac">'div'</tspan>, null,</text>
+    <text x="88" y="410"><tspan fill="#60a5fa">h</tspan>(<tspan fill="#86efac">'ul'</tspan>, null, ...todos.<tspan fill="#60a5fa">map</tspan>((t) =&gt;</text>
+    <text x="110" y="444"><tspan fill="#60a5fa">h</tspan>(<tspan fill="#86efac">'li'</tspan>, { key: t }, t))),</text>
+    <text x="88" y="478"><tspan fill="#60a5fa">h</tspan>(<tspan fill="#86efac">'button'</tspan>, { onClick: add }, <tspan fill="#86efac">'추가'</tspan>));</text>
+    <text x="44" y="512">}</text>
+  </g>
+  <text x="40" y="578" font-size="20" fill="#94a3b8">저장소에 없는, 설명을 위해 만든 코드입니다.</text>
+  <text x="40" y="612" font-size="20" fill="#94a3b8">h 와 useState 는 miniReact(src/lib)의 함수입니다.</text>
+  <text x="40" y="646" font-size="20" fill="#94a3b8">켜진 줄이 지금 실행되는 줄입니다.</text>
+
+  <rect x="640" y="126" width="540" height="420" rx="16" fill="#f8fafc"/>
+  <rect x="640" y="126" width="540" height="46" rx="16" fill="#cbd5e1"/>
+  <rect x="640" y="150" width="540" height="22" fill="#cbd5e1"/>
+  <circle cx="666" cy="149" r="7" fill="#f87171"/>
+  <circle cx="690" cy="149" r="7" fill="#fbbf24"/>
+  <circle cx="714" cy="149" r="7" fill="#4ade80"/>
+  <rect x="740" y="134" width="420" height="30" rx="15" fill="#f1f5f9"/>
+  <text class="mono" x="758" y="156" font-size="20" fill="#475569">todo.example (가상의 페이지)</text>
+
+  <text x="664" y="216" font-size="26" font-weight="800" fill="#0f172a">오늘의 할 일</text>
+
+  <rect x="664" y="236" width="492" height="56" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="684" y="272" font-size="22" fill="#0f172a">우유 사기</text>
+  <text class="keep" x="1138" y="271" font-size="20" fill="#64748b" text-anchor="end">그대로 둠</text>
+
+  <rect x="664" y="302" width="492" height="56" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="684" y="338" font-size="22" fill="#0f172a">운동하기</text>
+  <text class="keep" x="1138" y="337" font-size="20" fill="#64748b" text-anchor="end">그대로 둠</text>
+
+  <g class="add">
+    <rect x="664" y="368" width="492" height="56" rx="10" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+    <text x="684" y="404" font-size="22" fill="#0f172a">책 읽기</text>
+    <text x="1138" y="403" font-size="20" font-weight="700" fill="#c2410c" text-anchor="end">새로 추가</text>
+  </g>
+  <rect class="fl" x="660" y="364" width="500" height="64" rx="12" fill="#fdba74" fill-opacity=".35" stroke="#f97316" stroke-width="4"/>
+
+  <rect x="664" y="450" width="120" height="48" rx="8" fill="#2563eb"/>
+  <rect class="hc" x="664" y="450" width="120" height="48" rx="8" fill="#1e3a8a"/>
+  <text x="724" y="481" font-size="20" font-weight="700" fill="#ffffff" text-anchor="middle">추가</text>
+
+  <rect x="640" y="566" width="262" height="120" rx="14" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  <text x="771" y="602" font-size="20" fill="#93c5fd" text-anchor="middle">todos의 항목 수</text>
+  <g class="mono" font-size="44" font-weight="700" fill="#f8fafc" text-anchor="middle">
+    <text class="c2" x="771" y="662">2</text>
+    <text class="c3" x="771" y="662">3</text>
+  </g>
+
+  <rect x="918" y="566" width="262" height="120" rx="14" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text x="1049" y="602" font-size="20" fill="#fdba74" text-anchor="middle">실제 DOM에서 바뀐 곳</text>
+  <text class="d0" x="1049" y="658" font-size="32" font-weight="700" fill="#fff7ed" text-anchor="middle">없음</text>
+  <text class="d1" x="1049" y="658" font-size="32" font-weight="700" fill="#fff7ed" text-anchor="middle">li 1개 추가</text>
+
+  <g class="cur">
+    <path d="M1140 520 L1140 554 L1149 546 L1156 562 L1162 559 L1155 544 L1167 544 Z" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+  </g>
+
+  <text x="40" y="724" font-size="22" fill="#f8fafc">개발자는 목록 전체를 다시 표현하지만, miniReact는 새로 생긴 한 줄만 DOM에 추가합니다.</text>
+</svg>

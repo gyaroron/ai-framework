@@ -1,39 +1,39 @@
-# miniReact · miniRedis · miniDBMS
+# miniReact — diff 지연을 줄이다
 
-> 외부 프레임워크 의존성 없이 순수 Vanilla JS로 직접 구현한 3대 코어 엔진(Virtual DOM, In-memory K-V Store, B+ Tree SQL DBMS)과 실측 벤치마크 프로젝트입니다.
+> 외부 프레임워크 의존성 없이 순수 Vanilla JS로 직접 구현한 miniReact(Virtual DOM · Diff · Patch · Hooks · 히스토리)와 실측 벤치마크 발표 자료입니다.
 
-이 문서는 두 부분으로 되어 있습니다.
+이 문서는 두 부분으로 되어 있고, 위에서부터 스크롤하며 발표합니다.
 
 | 순서 | 내용 | 무엇을 볼 수 있나 |
 | :--- | :--- | :--- |
-| [1. 코드 폴더 구조](#1-코드-폴더-구조) | 폴더 · 파일 지도와 실행 명령 | 어느 파일이 어느 엔진의 어느 기능을 맡는지 |
-| [2. 차별점](#2-차별점) | 엔진별 차별점과 측정 근거 | 직접 만든 최적화 15가지 · 측정값 · 검증 · 한계 |
+| [1. 코드 폴더 구조](#1-코드-폴더-구조) | miniReact 폴더 · 파일 지도와 실행 명령 | 어느 파일이 어느 기능을 맡는지 |
+| [2. 차별점](#2-차별점) | miniReact 차별점과 측정 근거 | 직접 만든 최적화 15가지 · 측정값 · 검증 · 한계 |
 
-> 📢 발표 대본과 1분 Q&A 스크립트는 [`move/PRESENTATION.md`](move/PRESENTATION.md) 에 있습니다.
-> 🗂️ 2주차 발표(캐시는 정말 몇 배 빠를까?) 자료는 [`README-week2.md`](README-week2.md) 에 따로 보관했습니다.
+> 📌 이 문서가 설명하는 miniReact 코드는 [`sikhesung` 브랜치](https://github.com/kimtaeg/ai-framework/tree/sikhesung)에 있습니다. 아래 파일 링크는 모두 그 브랜치의 파일을 엽니다.
+> 📢 발표 대본과 1분 Q&A 스크립트는 [`move/PRESENTATION.md`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/move/PRESENTATION.md) 에 있습니다.
 
 ---
 
 ## 1. 코드 폴더 구조
 
-저장소는 크게 **엔진 본체**, **측정 · 실험**, **테스트**, **학습 · 시연 페이지**, **서버 · 도구** 다섯 묶음으로 나뉩니다.
+miniReact 코드는 **라이브러리 본체**, **측정**, **테스트**, **시연 · 학습 페이지**, **서버 · 도구** 다섯 묶음으로 나뉩니다.
 
 ### 1-1. 한눈에 보는 묶음
 
 | 묶음 | 폴더 | 맡은 일 |
 | :--- | :--- | :--- |
-| **엔진 본체** | `src/lib/`<br>`week2/redis/`<br>`week2/dbms/` | 1주차 miniReact 라이브러리<br>2주차 miniRedis (키-값 저장소)<br>2주차 miniDBMS (SQL · B+ 트리 · 스레드 풀) |
-| **측정 · 실험** | `move/`<br>`bench/`<br>`experiment/`<br>`load/` | diff 지연 · LIS MOVE 비교와 발표 자료<br>브라우저 렌더링 벤치마크<br>캐시 실험 (Docker + k6, 576회 측정)<br>대안 기술 비교 · k6 부하 스크립트 |
-| **테스트** | `tests/` | Node.js 내장 테스트 러너(`node:test`)로 도는 113개 스위트 · 932개 테스트 |
-| **학습 · 시연 페이지** | `phase1/` · `phase2/`<br>`guide/` · `theory/` · `docs/` 등 | 과제 Phase 1(Diff · 히스토리) · Phase 2(Hooks) 시연 화면<br>학습 가이드 · 이론 · 설명서 · 예제 · 샌드박스 |
-| **서버 · 도구** | `server.js` · `server/`<br>`build.js` · `tools/` | 의존성 없는 개발 서버와 API<br>`file://` 용 번들 생성기 · 메뉴 동기화 |
+| **라이브러리 본체** | `src/lib/` | Virtual DOM · Diff · Patch · LIS · Fenwick 트리 · 히스토리 · FunctionComponent · Hooks |
+| **측정** | `move/`<br>`bench/` | diff 지연 · LIS MOVE 비교와 발표 자료<br>브라우저 렌더링 벤치마크 |
+| **테스트** | `tests/` | Node.js 내장 테스트 러너(`node:test`)로 도는 단위 · 기능 · 퍼즈 테스트 |
+| **시연 · 학습 페이지** | `phase1/` · `phase2/`<br>`guide/` · `theory/` · `docs/` 등 | 과제 Phase 1(Diff · 히스토리) · Phase 2(Hooks) 시연 화면<br>학습 가이드 · 이론 · 설명서 · 예제 · 샌드박스 |
+| **서버 · 도구** | `server.js`<br>`build.js` · `tools/` | 의존성 없는 개발 서버<br>`file://` 용 번들 생성기 · 메뉴 동기화 |
 
 ### 1-2. 폴더 · 파일 지도
 
 ```text
-ai-framework/                    (브랜치: sikhesung)
+ai-framework/                    (브랜치: sikhesung · miniReact 부분)
 │
-├── src/lib/                     # [1주차] miniReact 라이브러리 본체
+├── src/lib/                     # miniReact 라이브러리 본체
 │   ├── index.js                 #   공개 창구(entry point) — 아래 모듈을 한곳에서 다시 내보냄
 │   ├── vdom.js                  #   VNode 생성(h) · DOM ↔ VNode 변환 · createElement
 │   ├── diff.js                  #   옛 트리와 새 트리를 비교해 패치 목록을 만듦 (5가지 diff · 할당 제거 · 빠른 길)
@@ -43,32 +43,6 @@ ai-framework/                    (브랜치: sikhesung)
 │   ├── history.js               #   StateHistory(스냅샷, 정답 기준) · DeltaHistory(키프레임 + 델타 · 분기)
 │   ├── component.js             #   FunctionComponent · Hooks(useState · useEffect 등) · memo
 │   └── warn.js                  #   개발 모드 경고 (같은 메시지는 한 번만)
-│
-├── week2/                       # [2주차] miniRedis · miniDBMS
-│   ├── redis/
-│   │   ├── hashtable.js         #   FNV-1a 해시 테이블 · 체이닝 · 점진적 리해시
-│   │   ├── miniredis.js         #   키-값 저장소 — TTL 만료 · 태그/패턴 무효화
-│   │   ├── persistence.js       #   AOF(Append Only File) 기록 · 복원 · 압축(rewrite)
-│   │   ├── api.js               #   HTTP + JSON API
-│   │   ├── server.js            #   단독 서버 (포트 6380)
-│   │   ├── client.js            #   MiniRedisClient — 다른 프로그램이 쓰는 클라이언트
-│   │   ├── node-fetch.js        #   Node 전용 가벼운 fetch
-│   │   └── demo-api.js          #   cache-aside 예시용 "느린 상품 API"
-│   ├── dbms/
-│   │   ├── sql.js               #   SQL 토크나이저 · 파서 (문자열 → AST)
-│   │   ├── engine.js            #   실행기 (AST → 동작) · B+ 트리 인덱스 연동
-│   │   ├── bptree.js            #   B+ 트리 인덱스 (분할 · 병합)
-│   │   ├── storage.js           #   저장 형식 + 메모리 저장소 (브라우저 · 테스트용)
-│   │   ├── storage-file.js      #   파일 저장소 (테이블 하나 = 파일 하나)
-│   │   ├── lock.js              #   읽기/쓰기 락 (테이블마다 하나, 쓰기 기아 방지)
-│   │   ├── pool.js · worker.js  #   worker_threads 스레드 풀과 워커
-│   │   ├── service.js           #   스레드 풀로 감싼 DBMS API
-│   │   ├── server.js            #   단독 API 서버 (포트 7000)
-│   │   ├── cli.js               #   SQL 실행 CLI
-│   │   ├── seed.js              #   대용량 레코드 생성기 (같은 seed = 같은 데이터)
-│   │   └── bench.js             #   B+ 트리 인덱스 vs 선형 탐색 (100만 건)
-│   ├── shared/                  #   2주차 학습 페이지 공용 UI 모듈
-│   └── (redis · dbms 아래 phase* · guide · theory · sandbox 등)   # 엔진별 학습 · 실습 페이지
 │
 ├── move/                        # [측정] diff 지연 · LIS MOVE 발표 자료
 │   ├── PRESENTATION.md          #   발표 대본 · Q&A
@@ -80,13 +54,14 @@ ai-framework/                    (브랜치: sikhesung)
 │                                #   results.json · *.svg (측정 결과와 그래프)
 │
 ├── bench/                       # [측정] 브라우저 렌더링 벤치마크 (patch vs innerHTML · key 유무 · batching)
-├── experiment/                  # [측정] 캐시 실험 — Docker Compose + k6, 결과는 experiment/results/
-├── load/                        # [측정] 대안 기술 비교(alt-bench.js) · k6 부하 스크립트
 │
 ├── tests/                       # [테스트] node:test 기반
-│   ├── vdom · diff-patch · history · history-delta · hooks · functional · advanced … .test.js   # 1주차
-│   ├── week2-redis · week2-redis-api · week2-dbms · week2-dbms-server … .test.js               # 2주차
-│   ├── experiment · alt-bench · testlab · chat … .test.js                                      # 실험 · 서버
+│   ├── vdom.test.js             #   VNode 생성 · 속성 정규화 · 직렬화
+│   ├── diff-patch.test.js       #   5가지 diff · 패치 경로 · LIS 최소 이동 · 포커스 보존
+│   ├── history.test.js          #   스냅샷 히스토리
+│   ├── history-delta.test.js    #   키프레임 + 델타 히스토리 (스냅샷과 무작위 이동 대조)
+│   ├── hooks.test.js            #   Hooks 라이프사이클 · 배치 렌더링 · 클린업
+│   ├── functional · advanced · improvements .test.js   # 기능 · 심화 · 개선 항목
 │   ├── fuzz-400.js              #   무작위 퍼즈 (npm run test:fuzz)
 │   └── setup.js                 #   jsdom 준비
 │
@@ -96,57 +71,37 @@ ai-framework/                    (브랜치: sikhesung)
 ├── walkthrough/ · deepdive/     # [페이지] 핵심 코드 해설 · 개념 더 파고들기
 ├── cheatsheet/ · examples/      # [페이지] 한 장 요약 · 예제 모음
 ├── sandbox/                     # [페이지] 코드를 써서 바로 실행해 보는 샌드박스
-├── testlab/                     # [페이지] 테스트 실험실 (비밀번호로 보호)
-├── styles/ · tools/             # 공용 CSS · 챗봇 · 인스펙터 · 메뉴 동기화(sync-nav.js)
+├── styles/ · tools/             # 공용 CSS · 인스펙터 · 메뉴 동기화(sync-nav.js)
 │
-├── server.js                    # 의존성 없는 개발 서버 — 정적 파일 + /api/redis · /api/demo · /api/sql · /api/chat
-├── server/                      # 챗봇 중계(chat.js) · 테스트 실험실(testlab.js · testlab-target.js)
+├── server.js                    # 의존성 없는 개발 서버 — 정적 파일 제공 (ES Module 은 file:// 에서 로드되지 않으므로 필요)
 ├── build.js                     # file:// 로 열 수 있게 페이지별 번들(bundle.js)을 만듦
 ├── index.html                   # 홈
-├── package.json                 # 런타임 의존성 0개 (devDependency: jsdom)
-├── README.md                    # 이 문서
-└── README-week2.md              # 2주차 발표 자료
+└── package.json                 # 런타임 의존성 0개 (devDependency: jsdom)
 ```
 
 ### 1-3. 실행 명령
 
 ```bash
-npm install     # 테스트용 jsdom 설치 (런타임 의존성 0개)
-npm test        # 1주차 + 2주차 전체 932개 단위/기능/퍼즈 테스트 실행
-npm start       # 로컬 학습 및 시연 서버 실행 (http://localhost:5200)
+git switch sikhesung   # miniReact 코드가 있는 브랜치로 이동
+npm install            # 테스트용 jsdom 설치 (런타임 의존성 0개)
+npm test               # 단위 · 기능 · 퍼즈 테스트 실행
+npm start              # 로컬 학습 및 시연 서버 실행 (http://localhost:5200)
 ```
-
-<details>
-<summary>💻 2주차 엔진 단독 실행 명령어</summary>
-
-```bash
-npm run redis                                 # 미니 레디스 단독 서버 (포트 6380, AOF 영속성)
-node week2/dbms/cli.js run query.sql          # SQL 파서 및 실행기 CLI (100만 건 시드 지원)
-npm run bench:dbms                            # B+ 트리 인덱스 vs 선형 탐색 100만 건 성능 비교
-npm run dbms                                  # 멀티스레드 풀 기반 DBMS API 서버 (포트 7000)
-```
-</details>
 
 ---
 
 ## 2. 차별점
 
-### 2-1. 엔진별 차별점 요약
+### 2-1. miniReact 차별점 요약
 
-| 엔진 | 차별점 | 근거 (측정값 · 동작) |
+| 차별점 | 근거 (측정값 · 동작) | 상세 |
 | :--- | :--- | :--- |
-| **miniReact** | **diff 지연 2.1 ~ 3.3배 단축** | 프로파일로 찾은 노드마다의 할당(경로 배열 · 속성 목록)을 없앰<br>1만 줄 다시 그리기 38 → 12ms |
-| **miniReact** | **목록 재배치 O(n log n)** | 흔한 O(n²) LIS 구현을 좌표 + Fenwick 트리로 바꿈<br>5만 줄 뒤집기 2,978ms → 23ms |
-| **miniReact** | **LIS 기반 최소 MOVE** | 1,000줄 맨 아래 → 맨 위: 앞에서부터 방식 999번, 우리 1번<br>무작위 1만 번 중 손해 0번 |
-| **miniReact** | **키프레임 + 델타 히스토리** | 뒤로가기 · 앞으로가기 한 칸은 diff 없이 저장된 패치만 적용<br>기록 메모리 207 → 23MB, 이동해도 입력값 · 포커스 유지 |
-| **miniReact** | **입력 중 포커스 보존** | `moveBefore` 로 옮기고, 없는 브라우저에서는 입력 중인 줄을 남기는 가중치 LIS |
-| **miniReact** | **Hooks 순서 보장 및 안전장치** | 컴포넌트 렌더링 간 `hookIndex` 무결성을 검증<br>조건부 Hook 호출 시 런타임 예외 발생 |
-| **miniRedis** | **점진적 리해시(Incremental Rehash)** | 버킷 확장/축소 시 메인 스레드가 멈추지 않도록 접근할 때마다 한 버킷씩 이동 |
-| **miniRedis** | **AOF 복원 및 파일 압축(Rewrite)** | 프로세스가 강제 종료된 뒤에도 손상되지 않은 줄까지 복구 |
-| **miniDBMS** | **B+ Tree 페이지 구조** | 디스크 블록 단위(4KB) I/O 시뮬레이션<br>분할(Split) · 병합(Merge) 경로 시각화 |
-| **miniDBMS** | **기아 방지(Starvation-free) Read/Write Lock** | 쓰기 대기열이 있으면 뒤에 온 읽기 요청을 기다리게 해 쓰기 기아를 막음 |
-
-아래 2-2 는 miniReact 차별점의 **측정 근거**입니다. miniRedis · miniDBMS 의 측정 근거(캐시 실험 576회)는 [`README-week2.md`](README-week2.md) 에 있습니다.
+| **diff 지연 2.1 ~ 3.3배 단축** | 프로파일로 찾은 노드마다의 할당(경로 배열 · 속성 목록)을 없앰<br>1만 줄 다시 그리기 38 → 12ms | ② · ④ |
+| **목록 재배치 O(n log n)** | 흔한 O(n²) LIS 구현을 좌표 + Fenwick 트리로 바꿈<br>5만 줄 뒤집기 2,978ms → 23ms | ⑤ |
+| **LIS 기반 최소 MOVE** | 1,000줄 맨 아래 → 맨 위: 앞에서부터 방식 999번, 우리 1번<br>무작위 1만 번 중 손해 0번 | ⑥ |
+| **키프레임 + 델타 히스토리** | 뒤로가기 · 앞으로가기 한 칸은 diff 없이 저장된 패치만 적용<br>기록 메모리 207 → 23MB, 이동해도 입력값 · 포커스 유지 | ⑦ |
+| **입력 중 포커스 보존** | `moveBefore` 로 옮기고, 없는 브라우저에서는 입력 중인 줄을 남기는 가중치 LIS | ⑥ · ⑧ |
+| **Hooks 순서 보장 및 안전장치** | 컴포넌트 렌더링 간 `hookIndex` 무결성을 검증<br>조건부 Hook 호출 시 런타임 예외 발생 | ⑫ |
 
 ### 2-2. miniReact 차별점 상세 — diff 지연을 줄이다
 
@@ -168,7 +123,7 @@ npm run dbms                                  # 멀티스레드 풀 기반 DBMS 
 
 #### ② 어디서 시간이 쓰이나 — 프로파일
 
-1만 줄(한 줄 = 요소 5개 · 클래스 · 스타일 · 클릭 핸들러)을 **바뀐 것 없이 다시 그리는 diff** 를 4초 동안 반복하며 CPU 프로파일을 떴습니다 ([`move/bench/profile.js`](move/bench/profile.js)).
+1만 줄(한 줄 = 요소 5개 · 클래스 · 스타일 · 클릭 핸들러)을 **바뀐 것 없이 다시 그리는 diff** 를 4초 동안 반복하며 CPU 프로파일을 떴습니다 ([`move/bench/profile.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/move/bench/profile.js)).
 
 | 함수 (할당 제거 전) | 자기 시간 | 무엇을 하나 |
 | --- | ---: | --- |
@@ -188,7 +143,7 @@ npm run dbms                                  # 멀티스레드 풀 기반 DBMS 
 | **단계를 번갈아 실행** | 처음 · 1단계 · 지금 세 버전을 돌아가며 먼저 실행하고, 워밍업 5회를 뺀 25회의 중앙값을 씁니다 |
 | **결과가 같아야 비교한다** | 버전끼리 패치를 하나하나 대조하고, 브라우저 비교에서는 최종 순서와 입력칸이 같은지 확인합니다 |
 | **실제 DOM 으로 센다** | DOM 이동 횟수는 패치 수가 아니라 브라우저의 **MutationObserver** 로 셉니다 |
-| **비교 대상도 같은 조건** | "앞에서부터" 방식은 key 매칭 · 패치 형식 · 위치 계산 기법까지 우리와 같게 만들고, 옮길 줄을 고르는 규칙만 다르게 했습니다 ([`move/naive.js`](move/naive.js)) |
+| **비교 대상도 같은 조건** | "앞에서부터" 방식은 key 매칭 · 패치 형식 · 위치 계산 기법까지 우리와 같게 만들고, 옮길 줄을 고르는 규칙만 다르게 했습니다 ([`move/naive.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/move/naive.js)) |
 
 | 트러블슈팅 | 원인 | 해결 |
 | --- | --- | --- |
@@ -209,7 +164,7 @@ npm run dbms                                  # 멀티스레드 풀 기반 DBMS 
 - **경로**: 하나의 배열을 덮어쓰며 내려가고, 패치를 만들 때만 그 순간의 경로를 잘라 냅니다. 바뀐 게 없으면 경로를 하나도 만들지 않습니다.
 - **속성 비교**: `Object.keys` 대신 `for..in` 으로 돌고, 바뀐 게 없으면 같은 빈 배열을 돌려줍니다.
 
-<p align="center"><img src="move/bench/stages.svg" alt="1,000줄 목록에서 단계별 diff 시간" width="880"></p>
+<p align="center"><img src="mini_React/readme_images/stages.png" alt="1,000줄 목록에서 단계별 diff 시간" width="880"></p>
 
 | 줄 수 · 상황 | 처음 | 1단계 (목록 재배치) | **지금 (할당 제거)** | 처음 대비 |
 | --- | ---: | ---: | ---: | ---: |
@@ -222,13 +177,13 @@ npm run dbms                                  # 멀티스레드 풀 기반 DBMS 
 | 1만 줄 · 맨 아래 → 맨 위 | 35.5 | 25.6 | **13.1** ms | **2.7배** |
 | 1만 줄 · 섞기 | 179.3 | 35.5 | **23.4** ms | **7.6배** |
 
-<sub>diff 계산 시간 (Node 24, 25회 중앙값). "처음" = 최적화 전 코드 ([`move/bench/lis-common.js`](move/bench/lis-common.js)), "1단계" = 목록 재배치 최적화 뒤 ([`move/bench/diff-v1.js`](move/bench/diff-v1.js)), "지금" = [`src/lib/diff.js`](src/lib/diff.js).</sub>
+<sub>diff 계산 시간 (Node 24, 25회 중앙값). "처음" = 최적화 전 코드 ([`move/bench/lis-common.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/move/bench/lis-common.js)), "1단계" = 목록 재배치 최적화 뒤 ([`move/bench/diff-v1.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/move/bench/diff-v1.js)), "지금" = [`src/lib/diff.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/diff.js).</sub>
 
 #### ⑤ 개선 2 — 목록 재배치에 숨은 O(n²)
 
 목록 순서가 바뀌면 diff 는 key 로 같은 줄을 찾고, **LIS(최장 증가 부분 수열)** 로 "이미 순서가 맞는 줄" 은 두고 나머지만 옮깁니다. LIS 는 "누구를 옮길지" 만 정하고, 각 줄을 **몇 번째에서 몇 번째로** 옮길지는 따로 계산해야 합니다. 흔한 구현(우리 첫 구현도)은 옮길 때마다 배열을 `indexOf` 로 훑고 `splice` 로 빼고 넣습니다. 한 번에 n, 그걸 n번 하니 **O(n²)** 입니다.
 
-<p align="center"><img src="move/bench/complexity.svg" alt="diff 계산 시간: 흔한 LIS 는 O(n²), 우리는 O(n log n)" width="880"></p>
+<p align="center"><img src="mini_React/readme_images/complexity.png" alt="diff 계산 시간: 흔한 LIS 는 O(n²), 우리는 O(n log n)" width="880"></p>
 
 | 줄 수 | 섞기: 흔한 LIS → **우리** | 배율 | 뒤집기: 흔한 LIS → **우리** | 배율 |
 | ---: | ---: | ---: | ---: | ---: |
@@ -254,13 +209,13 @@ d 옮기기:  from = d  앞의 ● 수 = 4  →  d 끄고 d' 켬  →  to = d' �
 
 새 순서대로 각 줄의 옛 위치를 적으면, **증가하는 순서로 이어진 줄은 서로의 상대 순서가 이미 맞으므로** 옮길 필요가 없습니다. 나머지는 어떤 방법으로도 한 번은 옮겨야 하므로 $\text{최소 이동} = \text{남은 줄 수} - \text{LIS 길이}$ 입니다.
 
-<p align="center"><img src="move/bench/moves.svg" alt="맨 아래 줄을 맨 위로 올릴 때 DOM 이동 횟수" width="880"></p>
+<p align="center"><img src="mini_React/readme_images/moves.png" alt="맨 아래 줄을 맨 위로 올릴 때 DOM 이동 횟수" width="880"></p>
 
-<p align="center"><img src="move/bench/noloss.svg" alt="무작위 재배치 1만 번에서 앞에서부터 이동 − 우리 이동의 분포" width="880"></p>
+<p align="center"><img src="mini_React/readme_images/noloss.png" alt="무작위 재배치 1만 번에서 앞에서부터 이동 − 우리 이동의 분포" width="880"></p>
 
 - 무작위 재배치 **1만 번** 중 우리가 앞에서부터 방식보다 더 많이 옮긴 경우는 **0번**, 1만 번 모두 이론상 최소였습니다. 전체 이동은 **47% 적습니다**.
 
-<p align="center"><img src="move/bench/browser.svg" alt="1,000줄 목록에서 화면에 반영되기까지 걸린 시간" width="880"></p>
+<p align="center"><img src="mini_React/readme_images/browser.png" alt="1,000줄 목록에서 화면에 반영되기까지 걸린 시간" width="880"></p>
 
 | 줄 수 | 맨 아래 → 맨 위<br>앞에서부터 / **LIS** | 두 줄 바꾸기<br>앞에서부터 / **LIS** | 아래 10% → 맨 위<br>앞에서부터 / **LIS** | 섞기<br>앞에서부터 / **LIS** | 뒤집기<br>앞에서부터 / **LIS** |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -278,7 +233,7 @@ d 옮기기:  from = d  앞의 ● 수 = 4  →  d 끄고 d' 켬  →  to = d' �
 과제 요구사항: **뒤로가기 · 앞으로가기로 state history 에 저장된 Virtual DOM 으로 이동하고, 실제 영역과 테스트 영역이 함께 바뀌어야 합니다.**
 처음 구현은 기록마다 **화면 트리 전체**를 저장하고, 이동할 때마다 **diff(지금 화면, 목표 화면)** 을 계산했습니다. 1,000줄 화면이면 기록 하나가 1,000줄짜리 트리이고, 뒤로가기 한 번이 diff 한 번입니다.
 
-**개조 — 동영상 코덱의 I-프레임 / P-프레임과 같은 구조** ([`src/lib/history.js`](src/lib/history.js) `DeltaHistory`)
+**개조 — 동영상 코덱의 I-프레임 / P-프레임과 같은 구조** ([`src/lib/history.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/history.js) `DeltaHistory`)
 
 ```
 기록:   #0        #1      #2      …   #10       #11     …
@@ -289,10 +244,10 @@ d 옮기기:  from = d  앞의 ● 수 = 4  →  d 끄고 d' 켬  →  to = d' �
 멀리 이동 (#3 → #48)         → 가까운 키프레임(#50)에서 패치로 #48 을 다시 만듦  diff 1번
 ```
 
-- 저장된 패치만으로 과거 · 미래의 화면 트리를 다시 만들려고 **패치를 VNode 트리에 적용하는 함수**를 만들었습니다 ([`applyPatchesToVNode`](src/lib/patch.js)). 바뀐 경로만 복사하고 나머지 하위 트리는 공유합니다.
+- 저장된 패치만으로 과거 · 미래의 화면 트리를 다시 만들려고 **패치를 VNode 트리에 적용하는 함수**를 만들었습니다 ([`applyPatchesToVNode`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/patch.js)). 바뀐 경로만 복사하고 나머지 하위 트리는 공유합니다.
 - 실제 영역은 **다시 그리지 않고 패치만** 적용합니다. 그래서 이동해도 사용자가 입력하던 값 · 포커스가 남습니다. 저장된 패치가 입력 중인 줄을 옮기게 되면 그때만 diff 를 다시 해서 그 줄을 지킵니다.
 
-<p align="center"><img src="move/bench/history.svg" alt="1,000줄 화면을 100번 고친 기록의 메모리: 스냅샷 207MB, 키프레임 10칸마다 23MB" width="880"></p>
+<p align="center"><img src="mini_React/readme_images/history.png" alt="1,000줄 화면을 100번 고친 기록의 메모리: 스냅샷 207MB, 키프레임 10칸마다 23MB" width="880"></p>
 
 | 1,000줄 화면 · 100번 고친 기록 | 스냅샷 (처음) | **키프레임 + 델타 (10칸마다)** |
 | --- | ---: | ---: |
@@ -302,7 +257,7 @@ d 옮기기:  from = d  앞의 ● 수 = 4  →  d 끄고 d' 켬  →  to = d' �
 | 기록 하나 쌓기 (push) | 0.84 ~ 0.90 ms | **1.60 ~ 2.31 ms (느려짐)** |
 | 이동 뒤 실제 영역의 입력값 | 다시 그리면 **0 / 5** | **5 / 5 + 포커스 유지** |
 
-<sub>한 줄 = 요소 5개 · 클래스 · 스타일 · 클릭 핸들러(하나를 계속 씀). 고칠 때마다 트리 전체를 새로 만듭니다 (70% 한 줄 글자 · 15% 한 줄 맨 위로 · 10% 추가 · 5% 삭제). 메모리는 GC 뒤 늘어난 힙, 시간은 25회 중앙값을 두 번 잰 범위입니다 ([`move/bench/history.js`](move/bench/history.js)). 입력값은 테스트로 확인합니다 ([`tests/history-delta.test.js`](tests/history-delta.test.js)).</sub>
+<sub>한 줄 = 요소 5개 · 클래스 · 스타일 · 클릭 핸들러(하나를 계속 씀). 고칠 때마다 트리 전체를 새로 만듭니다 (70% 한 줄 글자 · 15% 한 줄 맨 위로 · 10% 추가 · 5% 삭제). 메모리는 GC 뒤 늘어난 힙, 시간은 25회 중앙값을 두 번 잰 범위입니다 ([`move/bench/history.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/move/bench/history.js)). 입력값은 테스트로 확인합니다 ([`tests/history-delta.test.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/tests/history-delta.test.js)).</sub>
 
 - **키프레임 간격은 메모리와 점프 시간의 트레이드오프**입니다. 5칸마다 43MB, 25칸마다 10MB 이고, 간격이 넓을수록 멀리 이동할 때 다시 만들 칸이 늘어납니다.
 - **대가**: 기록을 쌓을 때 "뒤로 가는 패치" 를 만들려고 diff 를 한 번 더 해서 push 가 약 1ms 느려집니다. 이동보다 기록이 훨씬 잦은 화면이라면 손해일 수 있습니다.
@@ -333,7 +288,7 @@ d 옮기기:  from = d  앞의 ● 수 = 4  →  d 끄고 d' 켬  →  to = d' �
 #### ⑨ 검증
 
 - 바꾸기 전 코드와 무작위 **4만 3천 건**의 패치를 경로까지 하나하나 대조해 모두 같았습니다.
-- 긴 목록 무작위 재배치 **600번**에서 DOM 결과 · 노드 재사용 · 최소 이동을 확인하고, 2만 줄 뒤집기가 400ms 안에 끝나는지 테스트합니다 ([`tests/diff-patch.test.js`](tests/diff-patch.test.js)).
+- 긴 목록 무작위 재배치 **600번**에서 DOM 결과 · 노드 재사용 · 최소 이동을 확인하고, 2만 줄 뒤집기가 400ms 안에 끝나는지 테스트합니다 ([`tests/diff-patch.test.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/tests/diff-patch.test.js)).
 - 깊이가 다른 여러 곳이 바뀌어도 각 패치의 경로가 맞는지, 바뀐 게 없으면 패치가 0개인지 테스트합니다.
 - 키프레임 + 델타 히스토리를 예전 스냅샷 히스토리와 나란히 두고 무작위 **2,100번** (쌓기 · 뒤로 · 앞으로 · 점프) 움직여, 매번 화면 트리와 실제 DOM 이 같은지 확인합니다. 패치를 VNode 에 적용하는 함수는 무작위 트리 2만 쌍에서 결과가 맞고 원래 트리를 바꾸지 않습니다.
 
@@ -359,17 +314,15 @@ npm start                                   # http://localhost:5200/move/ — �
 ```
 
 
-#### ⑫ 테스트 무결성 (113개 스위트, 932개 전수 통과)
+#### ⑫ 테스트
 
-모든 엔진 코드는 외부 프레임워크 없이 Node.js 내장 테스트 러너(`node:test`)로 검증되며, 비결정적 요소를 제거하여 **언제 실행해도 100% 동일한 결과**를 보장합니다.
+miniReact 코드는 외부 프레임워크 없이 Node.js 내장 테스트 러너(`node:test`)로 검증합니다. 비결정적 요소를 제거해 언제 실행해도 같은 결과가 나옵니다.
 
 ```
 ✔ VNode 생성, 속성 정규화, XSS 방어 및 직렬화 왕복 테스트 통과
 ✔ 5가지 diff 케이스, 패치 경로, LIS 최소 이동, 긴 목록 무작위 재배치 · 빠른 길 · 포커스 보존(가중치 LIS · moveBefore) 검증 및 2,000쌍 무작위 트리 퍼즈 일치
 ✔ 키프레임 + 델타 히스토리: 스냅샷 히스토리와 무작위 이동 대조, VNode 패치 적용, 이동 뒤 입력값 · 포커스 유지
 ✔ FunctionComponent 훅 라이프사이클, 배치 렌더링, 클린업 타이밍 통과
-✔ FNV-1a 해시 충돌, 점진적 리해시, 가짜 시계를 활용한 TTL 만료 및 AOF 복원 통과
-✔ SQL 토크나이저/AST 파서, B+ 트리 차수별 구조 검증, 다중 트랜잭션 동시성 통과
-✔ 캐시 실험: RESP 서버 대조 · 조각난 요청 · 지연 주입 스크립트 · 분석 통계 검증 통과
-✔ 113 suites / 932 tests passed (0 failed, 100% deterministic)
 ```
+
+<sub>저장소 전체(1주차 miniReact + 2주차 엔진) 기준으로는 113개 스위트 · 932개 테스트가 모두 통과합니다.</sub>

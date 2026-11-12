@@ -1,6 +1,6 @@
-# miniReact — 상태로 화면을 설명하다
+# miniReact — diff 지연을 줄이다
 
-> 4분 발표용 README입니다. 발표 그림 6장과 각 장의 핵심 문장을 담았습니다.
+> 외부 프레임워크 의존성 없이 순수 Vanilla JS로 직접 구현한 miniReact(Virtual DOM · Diff · Patch · Hooks · 히스토리)의 4분 발표 자료입니다.
 
 ## 사용 방법
 
@@ -16,7 +16,7 @@
 | [2](#2--6) | 왜 React인가: 명령형(imperative)과 선언형(declarative) | 55초 |
 | [3](#3--6) | 이점 ①: state를 바꾸면 화면 세 곳이 한 번에 바뀜 | 60초 |
 | [4](#4--6) | 이점 ②: 컴포넌트(component)로 나누고 props로 연결 | 55초 |
-| [5](#5--6) | 알고리즘과 수치 (전체의 15%) | 36초 |
+| [5](#5--6) | diff 지연을 줄이다: 알고리즘과 수치 (전체의 15%) | 36초 |
 | [6](#6--6) | 마무리 | 24초 |
 
 ## 코드 출처
@@ -25,7 +25,7 @@
 | --- | --- | --- |
 | [`mini_React/app.js`](https://github.com/kimtaeg/ai-framework/blob/gyaroron_kjs/mini_React/app.js) | `gyaroron_kjs` | 2 ~ 4장: React를 쓰는 이유와 이점 |
 | [`src/lib/fenwick.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/fenwick.js) | `sikhesung` | 5장: 알고리즘 코드 |
-| [`README.md`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/README.md) | `sikhesung` | 5장: 측정값 |
+| [`README.md`](https://github.com/kimtaeg/ai-framework/blob/gyaroron_kjs/README.md) | `gyaroron_kjs` | 제목과 5장의 측정값. 원본은 [백업 브랜치](https://github.com/gyaroron/ai-framework/blob/backup/gyaroron_kjs-original/README.md)에 보관 |
 
 > [!NOTE]
 > 2 ~ 4장의 코드는 `gyaroron_kjs` 브랜치의 구현이고, 5장의 알고리즘과 측정값은 `sikhesung` 브랜치의 구현입니다. 두 브랜치는 diff를 구현한 방식이 다르므로, 5장의 측정값을 2 ~ 4장의 코드에 그대로 적용하지 않습니다.
@@ -80,7 +80,7 @@
 
 <p align="right"><sub><a href="#4--6">‹ 이전</a> &nbsp;·&nbsp; <a href="#6--6">다음 ›</a></sub></p>
 
-> miniReact가 변경을 찾는 데에는 비용이 듭니다. 이 구현은 그 비용을 재고, 세 곳에서 줄였습니다.
+> 상태가 바뀔 때마다 diff는 옛 tree와 새 tree를 비교합니다. 이 구현은 그 지연을 재고, 세 곳에서 줄였습니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 

@@ -9,8 +9,8 @@
   </style>
 
   <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
-  <text x="40" y="72" font-size="32" font-weight="800" fill="#f8fafc">비용을 재고 줄였습니다</text>
-  <text x="40" y="110" font-size="20" fill="#cbd5e1">sikhesung 브랜치의 측정값 · 노트북 한 대, Node 24, Chrome 한 종류</text>
+  <text x="40" y="72" font-size="32" font-weight="800" fill="#f8fafc">diff 지연을 줄이다</text>
+  <text x="40" y="110" font-size="20" fill="#cbd5e1">변경을 찾는 비용을 재고 세 곳에서 줄였습니다 · 측정: 노트북 한 대, Node 24, Chrome 한 종류</text>
 
   <rect x="30" y="140" width="360" height="520" rx="16" fill="#111c33" stroke="#334155"/>
   <text x="50" y="190" font-size="26" font-weight="800" fill="#f8fafc">줄을 옮긴 횟수</text>

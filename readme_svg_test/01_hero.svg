@@ -17,7 +17,7 @@
   <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
   <text x="600" y="130" font-size="22" font-weight="700" fill="#fb923c" letter-spacing="4" text-anchor="middle">VIRTUAL DOM · DIFF · HOOKS</text>
   <text x="600" y="258" font-size="116" font-weight="800" fill="#f8fafc" text-anchor="middle">miniReact</text>
-  <text x="600" y="330" font-size="38" fill="#cbd5e1" text-anchor="middle">상태로 화면을 설명하다</text>
+  <text x="600" y="330" font-size="38" fill="#cbd5e1" text-anchor="middle">diff 지연을 줄이다</text>
 
   <line class="flow" x1="454" y1="480" x2="532" y2="480" stroke="#94a3b8" stroke-width="3" marker-end="url(#ah)"/>
   <line class="flow" x1="704" y1="480" x2="782" y2="480" stroke="#94a3b8" stroke-width="3" marker-end="url(#ah)"/>

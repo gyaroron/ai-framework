@@ -92,13 +92,13 @@
   </g>
 
   <rect x="918" y="566" width="262" height="120" rx="14" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
-  <text x="1049" y="602" font-size="20" fill="#fdba74" text-anchor="middle">실제 DOM에서 바뀐 곳</text>
+  <text x="1049" y="602" font-size="20" fill="#fdba74" text-anchor="middle">화면에서 실제로 바뀐 곳</text>
   <text class="d0" x="1049" y="658" font-size="32" font-weight="700" fill="#fff7ed" text-anchor="middle">없음</text>
-  <text class="d1" x="1049" y="658" font-size="32" font-weight="700" fill="#fff7ed" text-anchor="middle">li 1개 추가</text>
+  <text class="d1" x="1049" y="658" font-size="32" font-weight="700" fill="#fff7ed" text-anchor="middle">1줄 추가</text>
 
   <g class="cur">
     <path d="M1140 520 L1140 554 L1149 546 L1156 562 L1162 559 L1155 544 L1167 544 Z" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
   </g>
 
-  <text x="40" y="724" font-size="22" fill="#f8fafc">개발자는 목록 전체를 다시 표현하지만, miniReact는 새로 생긴 한 줄만 DOM에 추가합니다.</text>
+  <text x="40" y="724" font-size="22" fill="#f8fafc">코드는 할 일 3개를 모두 넘깁니다. miniReact는 이미 있는 2줄은 두고, 없던 1줄만 화면에 넣습니다.</text>
 </svg>

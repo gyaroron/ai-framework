@@ -94,7 +94,7 @@
 
 <p align="right"><sub><a href="#5--9">‹ 이전</a> &nbsp;·&nbsp; <a href="#7--9">다음 ›</a></sub></p>
 
-> 개발자는 목록 전체를 다시 표현하지만, miniReact는 옛 모습과 비교해 새로 생긴 한 줄만 DOM에 추가합니다.
+> 개발자의 코드는 할 일 3개를 모두 적은 목록을 miniReact에 넘깁니다. miniReact는 화면에 이미 있는 2줄은 건드리지 않고, 화면에 없던 1줄만 새로 넣습니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 

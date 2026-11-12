@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="코드 폴더 구조: src/lib 라이브러리 본체 안에서 vdom.js, diff.js, patch.js가 차례로 일하고, lis.js와 fenwick.js가 diff.js를 돕는다. 나머지는 측정, 테스트, 시연과 학습 페이지, 서버와 도구 묶음이다">
+  <style>
+    text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .flow { stroke-dasharray: 7 7; animation: dash 0.9s linear infinite; }
+    .p1 rect, .p2 rect, .p3 rect { animation: lit 6s ease-in-out infinite; }
+    .p2 rect { animation-delay: 2s; } .p3 rect { animation-delay: 4s; }
+    @keyframes dash { from { stroke-dashoffset: 14; } to { stroke-dashoffset: 0; } }
+    @keyframes lit { 0%, 100% { stroke-width: 2; } 6%, 26% { stroke-width: 7; } 34% { stroke-width: 2; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#60a5fa"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
+  <text x="40" y="72" font-size="32" font-weight="800" fill="#f8fafc">코드 폴더 구조</text>
+  <text x="40" y="110" font-size="20" fill="#cbd5e1">miniReact 코드는 다섯 묶음으로 나뉩니다 · sikhesung 브랜치</text>
+
+  <rect x="20" y="130" width="760" height="560" rx="18" fill="#111c33" stroke="#334155"/>
+  <text x="45" y="172" font-size="24" font-weight="800" fill="#93c5fd">라이브러리 본체</text>
+  <text class="mono" x="232" y="172" font-size="22" fill="#bfdbfe">src/lib/</text>
+
+  <g class="p1">
+    <rect x="45" y="196" width="210" height="104" rx="12" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  </g>
+  <text class="mono" x="150" y="240" font-size="24" font-weight="700" fill="#bfdbfe" text-anchor="middle">vdom.js</text>
+  <text x="150" y="276" font-size="20" fill="#e2e8f0" text-anchor="middle">VNode를 만든다</text>
+
+  <line class="flow" x1="255" y1="248" x2="292" y2="248" stroke="#60a5fa" stroke-width="3" marker-end="url(#ab)"/>
+
+  <g class="p2">
+    <rect x="300" y="196" width="210" height="104" rx="12" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  </g>
+  <text class="mono" x="405" y="240" font-size="24" font-weight="700" fill="#bfdbfe" text-anchor="middle">diff.js</text>
+  <text x="405" y="276" font-size="20" fill="#e2e8f0" text-anchor="middle">두 tree를 비교한다</text>
+
+  <line class="flow" x1="510" y1="248" x2="547" y2="248" stroke="#60a5fa" stroke-width="3" marker-end="url(#ab)"/>
+
+  <g class="p3">
+    <rect x="555" y="196" width="210" height="104" rx="12" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  </g>
+  <text class="mono" x="660" y="240" font-size="24" font-weight="700" fill="#bfdbfe" text-anchor="middle">patch.js</text>
+  <text x="660" y="276" font-size="20" fill="#e2e8f0" text-anchor="middle">DOM에 반영한다</text>
+
+  <line x1="405" y1="300" x2="405" y2="326" stroke="#60a5fa" stroke-width="2"/>
+  <line x1="290" y1="326" x2="520" y2="326" stroke="#60a5fa" stroke-width="2"/>
+  <line x1="290" y1="326" x2="290" y2="350" stroke="#60a5fa" stroke-width="2"/>
+  <line x1="520" y1="326" x2="520" y2="350" stroke="#60a5fa" stroke-width="2"/>
+
+  <rect x="180" y="350" width="220" height="100" rx="12" fill="#13233f" stroke="#60a5fa" stroke-width="2" stroke-dasharray="6 5"/>
+  <text class="mono" x="290" y="392" font-size="22" font-weight="700" fill="#bfdbfe" text-anchor="middle">lis.js</text>
+  <text x="290" y="426" font-size="20" fill="#e2e8f0" text-anchor="middle">안 옮길 줄을 고른다</text>
+
+  <rect x="410" y="350" width="220" height="100" rx="12" fill="#13233f" stroke="#60a5fa" stroke-width="2" stroke-dasharray="6 5"/>
+  <text class="mono" x="520" y="392" font-size="22" font-weight="700" fill="#bfdbfe" text-anchor="middle">fenwick.js</text>
+  <text x="520" y="426" font-size="20" fill="#e2e8f0" text-anchor="middle">몇 번째 줄인지 센다</text>
+
+  <rect x="45" y="480" width="350" height="100" rx="12" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  <text class="mono" x="220" y="522" font-size="22" font-weight="700" fill="#bfdbfe" text-anchor="middle">component.js</text>
+  <text x="220" y="556" font-size="20" fill="#e2e8f0" text-anchor="middle">FunctionComponent · Hooks</text>
+
+  <rect x="415" y="480" width="350" height="100" rx="12" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  <text class="mono" x="590" y="522" font-size="22" font-weight="700" fill="#bfdbfe" text-anchor="middle">history.js</text>
+  <text x="590" y="556" font-size="20" fill="#e2e8f0" text-anchor="middle">뒤로 가기 · 앞으로 가기 기록</text>
+
+  <text x="45" y="626" font-size="20" fill="#94a3b8">index.js: 위 모듈을 한곳에서 다시 내보낸다</text>
+  <text x="45" y="660" font-size="20" fill="#94a3b8">warn.js: 개발 모드 경고를 낸다</text>
+
+  <rect x="810" y="130" width="370" height="128" rx="14" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text x="830" y="168" font-size="22" font-weight="800" fill="#fdba74">측정</text>
+  <text class="mono" x="830" y="202" font-size="20" fill="#fed7aa">move/ · bench/</text>
+  <text x="830" y="236" font-size="20" fill="#fff7ed">diff 지연과 이동 횟수를 잰다</text>
+
+  <rect x="810" y="274" width="370" height="128" rx="14" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text x="830" y="312" font-size="22" font-weight="800" fill="#fdba74">테스트</text>
+  <text class="mono" x="830" y="346" font-size="20" fill="#fed7aa">tests/</text>
+  <text x="830" y="380" font-size="20" fill="#fff7ed">node:test로 동작을 확인한다</text>
+
+  <rect x="810" y="418" width="370" height="128" rx="14" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+  <text x="830" y="456" font-size="22" font-weight="800" fill="#e2e8f0">시연 · 학습 페이지</text>
+  <text class="mono" x="830" y="490" font-size="20" fill="#cbd5e1">phase1/ · phase2/ · guide/ 등</text>
+  <text x="830" y="524" font-size="20" fill="#e2e8f0">과제 시연 화면과 학습 자료</text>
+
+  <rect x="810" y="562" width="370" height="128" rx="14" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+  <text x="830" y="600" font-size="22" font-weight="800" fill="#e2e8f0">서버 · 도구</text>
+  <text class="mono" x="830" y="634" font-size="20" fill="#cbd5e1">server.js · build.js · tools/</text>
+  <text x="830" y="668" font-size="20" fill="#e2e8f0">개발 서버와 번들 생성</text>
+
+  <text x="40" y="726" font-size="20" fill="#94a3b8">런타임 의존성은 0개입니다 (package.json · 테스트용 devDependency는 jsdom).</text>
+</svg>

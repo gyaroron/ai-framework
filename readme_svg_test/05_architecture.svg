@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="miniReact 구조: 브라우저의 이벤트가 component.js, vdom.js, diff.js, patch.js 를 차례로 거쳐 다시 브라우저의 DOM 에 반영된다. lis.js 와 fenwick.js 는 diff.js 를 돕고, history.js 는 patch.js 를 쓰며, tests 와 move 는 개발 시점에 라이브러리를 검사하고 측정한다">
+  <style>
+    text { font-family: Geist, Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', Consolas, 'D2Coding', monospace; letter-spacing: .02em; }
+    .e { stroke: #5e9cf5; stroke-width: 3; fill: none; }
+    .n { stroke: #a9aeb8; stroke-width: 2.4; fill: none; }
+    .dash { stroke-dasharray: 7 8; animation: dash 1.2s linear infinite; }
+    .el { font-family: 'JetBrains Mono', Consolas, 'D2Coding', monospace; font-size: 17px; fill: #a9aeb8; paint-order: stroke; stroke: #111419; stroke-width: 7px; stroke-linejoin: round; }
+    .el.a { fill: #5e9cf5; }
+    .hl { fill: none; stroke: #5e9cf5; stroke-width: 6; opacity: 0; animation: hl 9s linear infinite; }
+    .h1 { animation-delay: 1.17s; } .h2 { animation-delay: 2.17s; } .h3 { animation-delay: 3.18s; } .h4 { animation-delay: 4.18s; }
+    @keyframes dash { from { stroke-dashoffset: 15; } to { stroke-dashoffset: 0; } }
+    @keyframes hl { 0% { opacity: 0; } 2%, 9% { opacity: 1; } 14%, 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+  <defs>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0 H0 V36" fill="none" stroke="#1c2027" stroke-width="1.5"/>
+    </pattern>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/>
+    </marker>
+    <clipPath id="round"><rect x="0" y="0" width="1200" height="750" rx="24"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#round)">
+    <rect x="0" y="0" width="1200" height="750" fill="#111419"/>
+    <rect x="0" y="0" width="1200" height="750" fill="url(#grid)"/>
+  </g>
+
+  <text x="40" y="66" font-size="32" font-weight="800" fill="#eceef2">miniReact가 화면을 바꾸는 길</text>
+  <text x="40" y="102" font-size="20" fill="#a9aeb8">stack-diagram 방식으로 그린 구조 · sikhesung 브랜치의 src/lib</text>
+
+  <!-- GROUPS -->
+  <rect x="215" y="150" width="900" height="465" rx="18" fill="#3a2a16" fill-opacity=".38" stroke="#e8943f" stroke-width="2.2"/>
+  <image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAwIiBoZWlnaHQ9IjI1MDAiIHZpZXdCb3g9IjAgMCAxMDUyIDEwNTIiPjxwYXRoIGZpbGw9IiNmMGRiNGYiIGQ9Ik0wIDBoMTA1MnYxMDUySDB6Ii8+PHBhdGggZD0iTTk2NS45IDgwMS4xYy03LjctNDgtMzktODguMy0xMzEuNy0xMjUuOS0zMi4yLTE0LjgtNjguMS0yNS4zOTktNzguOC00OS44LTMuOC0xNC4yLTQuMy0yMi4yLTEuOS0zMC44IDYuOS0yNy45IDQwLjItMzYuNiA2Ni42LTI4LjYgMTcgNS43IDMzLjEgMTguODAxIDQyLjggMzkuNyA0NS40LTI5LjM5OSA0NS4zLTI5LjIgNzctNDkuMzk5LTExLjYtMTgtMTcuOC0yNi4zMDEtMjUuNC0zNC0yNy4zLTMwLjUtNjQuNS00Ni4yLTEyNC00NS0xMC4zIDEuMy0yMC42OTkgMi42OTktMzEgNC0yOS42OTkgNy41LTU4IDIzLjEtNzQuNiA0NC00OS44IDU2LjUtMzUuNiAxNTUuMzk5IDI1IDE5Ni4xIDU5LjcgNDQuOCAxNDcuNCA1NSAxNTguNiA5Ni45IDEwLjkgNTEuMy0zNy42OTkgNjcuODk5LTg2IDYyLTM1LjYtNy40LTU1LjM5OS0yNS41LTc2LjgtNTguNC0zOS4zOTkgMjIuOC0zOS4zOTkgMjIuOC03OS44OTkgNDYuMSA5LjYgMjEgMTkuNjk5IDMwLjUgMzUuOCA0OC43IDc2LjIgNzcuMyAyNjYuODk5IDczLjUgMzAxLjEtNDMuNSAxLjM5OS00LjAwMSAxMC42LTMwLjgwMSAzLjE5OS03Mi4xMDF6bS0zOTQtMzE3LjZoLTk4LjRjMCA4NS0uMzk5IDE2OS40LS4zOTkgMjU0LjQgMCA1NC4xIDIuOCAxMDMuNy02IDExOC45LTE0LjQgMjkuODk5LTUxLjcgMjYuMi02OC43IDIwLjM5OS0xNy4zLTguNS0yNi4xLTIwLjYtMzYuMy0zNy42OTktMi44LTQuOS00LjktOC43LTUuNjAxLTktMjYuNjk5IDE2LjMtNTMuMyAzMi42OTktODAgNDkgMTMuMzAxIDI3LjMgMzIuOSA1MSA1OCA2Ni4zOTkgMzcuNSAyMi41IDg3LjkgMjkuNCAxNDAuNjAxIDE3LjMgMzQuMy0xMCA2My44OTktMzAuNjk5IDc5LjM5OS02Mi4xOTkgMjIuNC00MS4zIDE3LjYtOTEuMyAxNy40LTE0Ni42LjUtOTAuMiAwLTE4MC40IDAtMjcwLjl6IiBmaWxsPSIjMzIzMzMwIi8+PC9zdmc+" x="233" y="166" width="22" height="22"/>
+  <text x="263" y="184" font-size="19" font-weight="600" fill="#f0ab63">src/lib · 라이브러리 본체</text>
+
+  <rect x="5" y="380" width="202" height="235" rx="18" fill="#1b2d4d" fill-opacity=".4" stroke="#5e9cf5" stroke-opacity=".55" stroke-width="2.2"/>
+  <text x="21" y="412" font-size="19" font-weight="600" fill="#5e9cf5">개발 시점</text>
+
+  <!-- EDGES -->
+  <path class="e" d="M157 265 H299" marker-end="url(#ar)"/>
+  <text class="el a" x="228" y="254" text-anchor="middle">setState</text>
+  <path class="e" d="M401 265 H509" marker-end="url(#ar)"/>
+  <text class="el a" x="455" y="254" text-anchor="middle">render</text>
+  <path class="e" d="M611 265 H719" marker-end="url(#ar)"/>
+  <text class="el a" x="665" y="254" text-anchor="middle">새 tree</text>
+  <path class="e" d="M821 265 H929" marker-end="url(#ar)"/>
+  <text class="el a" x="875" y="254" text-anchor="middle">패치</text>
+  <path class="e" d="M980 214 V198 H106 V214" marker-end="url(#ar)"/>
+  <text class="el a" x="665" y="204" text-anchor="middle">바뀐 곳만 DOM에 반영</text>
+
+  <path class="n" d="M770 376 V444" marker-end="url(#ar)"/>
+  <path class="n" d="M770 410 H560 V444" marker-end="url(#ar)"/>
+  <text class="el" x="665" y="402" text-anchor="middle">목록 순서</text>
+  <path class="n" d="M980 444 V382" marker-end="url(#ar)"/>
+  <text class="el" x="994" y="420">패치 적용</text>
+
+  <path class="n dash" d="M157 495 H509" marker-end="url(#ar)"/>
+  <text class="el" x="333" y="484" text-anchor="middle">테스트 · 측정</text>
+
+  <!-- 흐름을 따라가는 점: 타일 아래 층에 그려 타일 뒤로 지나간다 -->
+  <circle r="8" fill="#fbbf24">
+    <animateMotion dur="9s" repeatCount="indefinite" path="M106 265 H980 V198 H106 V265"/>
+  </circle>
+
+  <!-- NODES -->
+  <rect x="61" y="220" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2Q0NjYwIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyLjUiIHk9IjQiIHdpZHRoPSIxOSIgaGVpZ2h0PSIxMyIgcng9IjEuNSIvPjxwYXRoIGQ9Ik04IDIxaDhNMTIgMTd2NCIvPjwvc3ZnPg0K" x="80" y="239" width="52" height="52"/>
+  <rect class="hl" x="58" y="217" width="96" height="96" rx="20"/>
+  <text x="106" y="337" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">브라우저</text>
+  <text class="mono" x="106" y="363" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">이벤트 · DOM</text>
+  <rect x="305" y="220" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PCEtLSBAbGljZW5zZSBsdWNpZGUtc3RhdGljIHYxLjcyLjAgLSBJU0MgLS0+CjxzdmcKICBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1jb21wb25lbnQiCiAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzNkNDY2MCIKICBzdHJva2Utd2lkdGg9IjEuNyIKICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIKPgogIDxwYXRoIGQ9Ik0xNS41MzYgMTEuMjkzYTEgMSAwIDAgMCAwIDEuNDE0bDIuMzc2IDIuMzc3YTEgMSAwIDAgMCAxLjQxNCAwbDIuMzc3LTIuMzc3YTEgMSAwIDAgMCAwLTEuNDE0bC0yLjM3Ny0yLjM3N2ExIDEgMCAwIDAtMS40MTQgMHoiIC8+CiAgPHBhdGggZD0iTTIuMjk3IDExLjI5M2ExIDEgMCAwIDAgMCAxLjQxNGwyLjM3NyAyLjM3N2ExIDEgMCAwIDAgMS40MTQgMGwyLjM3Ny0yLjM3N2ExIDEgMCAwIDAgMC0xLjQxNEw2LjA4OCA4LjkxNmExIDEgMCAwIDAtMS40MTQgMHoiIC8+CiAgPHBhdGggZD0iTTguOTE2IDE3LjkxMmExIDEgMCAwIDAgMCAxLjQxNWwyLjM3NyAyLjM3NmExIDEgMCAwIDAgMS40MTQgMGwyLjM3Ny0yLjM3NmExIDEgMCAwIDAgMC0xLjQxNWwtMi4zNzctMi4zNzZhMSAxIDAgMCAwLTEuNDE0IDB6IiAvPgogIDxwYXRoIGQ9Ik04LjkxNiA0LjY3NGExIDEgMCAwIDAgMCAxLjQxNGwyLjM3NyAyLjM3NmExIDEgMCAwIDAgMS40MTQgMGwyLjM3Ny0yLjM3NmExIDEgMCAwIDAgMC0xLjQxNGwtMi4zNzctMi4zNzdhMSAxIDAgMCAwLTEuNDE0IDB6IiAvPgo8L3N2Zz4K" x="324" y="239" width="52" height="52"/>
+  <rect class="hl h1" x="302" y="217" width="96" height="96" rx="20"/>
+  <text x="350" y="337" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">component.js</text>
+  <text class="mono" x="350" y="363" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">Hooks · setState</text>
+  <rect x="515" y="220" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PCEtLSBAbGljZW5zZSBsdWNpZGUtc3RhdGljIHYxLjcyLjAgLSBJU0MgLS0+CjxzdmcKICBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1uZXR3b3JrIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICB3aWR0aD0iMjQiCiAgaGVpZ2h0PSIyNCIKICB2aWV3Qm94PSIwIDAgMjQgMjQiCiAgZmlsbD0ibm9uZSIKICBzdHJva2U9IiMzZDQ2NjAiCiAgc3Ryb2tlLXdpZHRoPSIxLjciCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cmVjdCB4PSIxNiIgeT0iMTYiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIHJ4PSIxIiAvPgogIDxyZWN0IHg9IjIiIHk9IjE2IiB3aWR0aD0iNiIgaGVpZ2h0PSI2IiByeD0iMSIgLz4KICA8cmVjdCB4PSI5IiB5PSIyIiB3aWR0aD0iNiIgaGVpZ2h0PSI2IiByeD0iMSIgLz4KICA8cGF0aCBkPSJNNSAxNnYtM2ExIDEgMCAwIDEgMS0xaDEyYTEgMSAwIDAgMSAxIDF2MyIgLz4KICA8cGF0aCBkPSJNMTIgMTJWOCIgLz4KPC9zdmc+Cg==" x="534" y="239" width="52" height="52"/>
+  <rect class="hl h2" x="512" y="217" width="96" height="96" rx="20"/>
+  <text x="560" y="337" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">vdom.js</text>
+  <text class="mono" x="560" y="363" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">VNode 생성</text>
+  <rect x="725" y="220" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PCEtLSBAbGljZW5zZSBsdWNpZGUtc3RhdGljIHYxLjcyLjAgLSBJU0MgLS0+CjxzdmcKICBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1naXQtY29tcGFyZSIKICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgd2lkdGg9IjI0IgogIGhlaWdodD0iMjQiCiAgdmlld0JveD0iMCAwIDI0IDI0IgogIGZpbGw9Im5vbmUiCiAgc3Ryb2tlPSIjM2Q0NjYwIgogIHN0cm9rZS13aWR0aD0iMS43IgogIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIKICBzdHJva2UtbGluZWpvaW49InJvdW5kIgo+CiAgPGNpcmNsZSBjeD0iMTgiIGN5PSIxOCIgcj0iMyIgLz4KICA8Y2lyY2xlIGN4PSI2IiBjeT0iNiIgcj0iMyIgLz4KICA8cGF0aCBkPSJNMTMgNmgzYTIgMiAwIDAgMSAyIDJ2NyIgLz4KICA8cGF0aCBkPSJNMTEgMThIOGEyIDIgMCAwIDEtMi0yVjkiIC8+Cjwvc3ZnPgo=" x="744" y="239" width="52" height="52"/>
+  <rect class="hl h3" x="722" y="217" width="96" height="96" rx="20"/>
+  <text x="770" y="337" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">diff.js</text>
+  <text class="mono" x="770" y="363" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">두 tree 비교</text>
+  <rect x="935" y="220" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PCEtLSBAbGljZW5zZSBsdWNpZGUtc3RhdGljIHYxLjcyLjAgLSBJU0MgLS0+CjxzdmcKICBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1oYW1tZXIiCiAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzNkNDY2MCIKICBzdHJva2Utd2lkdGg9IjEuNyIKICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIKPgogIDxwYXRoIGQ9Im0xNSAxMi05LjM3MyA5LjM3M2ExIDEgMCAwIDEtMy4wMDEtM0wxMiA5IiAvPgogIDxwYXRoIGQ9Im0xOCAxNSA0LTQiIC8+CiAgPHBhdGggZD0ibTIxLjUgMTEuNS0xLjkxNC0xLjkxNEEyIDIgMCAwIDEgMTkgOC4xNzJ2LS4zNDRhMiAyIDAgMCAwLS41ODYtMS40MTRsLTEuNjU3LTEuNjU3QTYgNiAwIDAgMCAxMi41MTYgM0g5bDEuMjQzIDEuMjQzQTYgNiAwIDAgMSAxMiA4LjQ4NVYxMGwyIDJoMS4xNzJhMiAyIDAgMCAxIDEuNDE0LjU4NkwxOC41IDE0LjUiIC8+Cjwvc3ZnPgo=" x="954" y="239" width="52" height="52"/>
+  <rect class="hl h4" x="932" y="217" width="96" height="96" rx="20"/>
+  <text x="980" y="337" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">patch.js</text>
+  <text class="mono" x="980" y="363" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">DOM 반영</text>
+  <rect x="61" y="450" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjU2IDI5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyOTIiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iYSIgeDE9IjY4LjE4OCUiIHgyPSIyNy44MjMlIiB5MT0iMTcuNDg3JSIgeTI9Ijg5Ljc1NSUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0MTg3M0YiLz48c3RvcCBvZmZzZXQ9IjMyLjg4JSIgc3RvcC1jb2xvcj0iIzQxOEIzRCIvPjxzdG9wIG9mZnNldD0iNjMuNTIlIiBzdG9wLWNvbG9yPSIjNDE5NjM3Ii8+PHN0b3Agb2Zmc2V0PSI5My4xOSUiIHN0b3AtY29sb3I9IiMzRkE5MkQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzRkFFMkEiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iYyIgeDE9IjQzLjI3NyUiIHgyPSIxNTkuMjQ1JSIgeTE9IjU1LjE2OSUiIHkyPSItMTguMzA2JSI+PHN0b3Agb2Zmc2V0PSIxMy43NiUiIHN0b3AtY29sb3I9IiM0MTg3M0YiLz48c3RvcCBvZmZzZXQ9IjQwLjMyJSIgc3RvcC1jb2xvcj0iIzU0QTA0NCIvPjxzdG9wIG9mZnNldD0iNzEuMzYlIiBzdG9wLWNvbG9yPSIjNjZCODQ4Ii8+PHN0b3Agb2Zmc2V0PSI5MC44MSUiIHN0b3AtY29sb3I9IiM2Q0MwNEEiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iZiIgeDE9Ii00LjM4OSUiIHgyPSIxMDEuNDk5JSIgeTE9IjQ5Ljk5NyUiIHkyPSI0OS45OTclIj48c3RvcCBvZmZzZXQ9IjkuMTkyJSIgc3RvcC1jb2xvcj0iIzZDQzA0QSIvPjxzdG9wIG9mZnNldD0iMjguNjQlIiBzdG9wLWNvbG9yPSIjNjZCODQ4Ii8+PHN0b3Agb2Zmc2V0PSI1OS42OCUiIHN0b3AtY29sb3I9IiM1NEEwNDQiLz48c3RvcCBvZmZzZXQ9Ijg2LjI0JSIgc3RvcC1jb2xvcj0iIzQxODczRiIvPjwvbGluZWFyR3JhZGllbnQ+PHBhdGggaWQ9ImIiIGQ9Ik0xMzQuOTIzIDEuODMyYy00LjM0NC0yLjQ0My05LjUwMi0yLjQ0My0xMy44NDYgMEw2Ljc4NyA2Ny44MDFDMi40NDMgNzAuMjQ0IDAgNzQuODU5IDAgNzkuNzQ1djEzMi4yMDhjMCA0Ljg4NyAyLjcxNSA5LjUwMiA2Ljc4NyAxMS45NDVsMTE0LjI5IDY1Ljk2OGM0LjM0NCAyLjQ0NCA5LjUwMiAyLjQ0NCAxMy44NDYgMGwxMTQuMjktNjUuOTY4YzQuMzQ0LTIuNDQzIDYuNzg3LTcuMDU4IDYuNzg3LTExLjk0NVY3OS43NDVjMC00Ljg4Ni0yLjcxNS05LjUwMS02Ljc4Ny0xMS45NDRMMTM0LjkyMyAxLjgzMloiLz48cGF0aCBpZD0iZSIgZD0iTTEzNC45MjMgMS44MzJjLTQuMzQ0LTIuNDQzLTkuNTAyLTIuNDQzLTEzLjg0NiAwTDYuNzg3IDY3LjgwMUMyLjQ0MyA3MC4yNDQgMCA3NC44NTkgMCA3OS43NDV2MTMyLjIwOGMwIDQuODg3IDIuNzE1IDkuNTAyIDYuNzg3IDExLjk0NWwxMTQuMjkgNjUuOTY4YzQuMzQ0IDIuNDQ0IDkuNTAyIDIuNDQ0IDEzLjg0NiAwbDExNC4yOS02NS45NjhjNC4zNDQtMi40NDMgNi43ODctNy4wNTggNi43ODctMTEuOTQ1Vjc5Ljc0NWMwLTQuODg2LTIuNzE1LTkuNTAxLTYuNzg3LTExLjk0NEwxMzQuOTIzIDEuODMyWiIvPjwvZGVmcz48cGF0aCBmaWxsPSJ1cmwoI2EpIiBkPSJNMTM0LjkyMyAxLjgzMmMtNC4zNDQtMi40NDMtOS41MDItMi40NDMtMTMuODQ2IDBMNi43ODcgNjcuODAxQzIuNDQzIDcwLjI0NCAwIDc0Ljg1OSAwIDc5Ljc0NXYxMzIuMjA4YzAgNC44ODcgMi43MTUgOS41MDIgNi43ODcgMTEuOTQ1bDExNC4yOSA2NS45NjhjNC4zNDQgMi40NDQgOS41MDIgMi40NDQgMTMuODQ2IDBsMTE0LjI5LTY1Ljk2OGM0LjM0NC0yLjQ0MyA2Ljc4Ny03LjA1OCA2Ljc4Ny0xMS45NDVWNzkuNzQ1YzAtNC44ODYtMi43MTUtOS41MDEtNi43ODctMTEuOTQ0TDEzNC45MjMgMS44MzJaIi8+PG1hc2sgaWQ9ImQiIGZpbGw9IiNmZmYiPjx1c2UgeGxpbms6aHJlZj0iI2IiLz48L21hc2s+PHBhdGggZmlsbD0idXJsKCNjKSIgZD0iTTI0OS40ODUgNjcuOCAxMzQuNjUgMS44MzNjLTEuMDg2LS41NDItMi40NDMtMS4wODUtMy41MjktMS4zNTdMMi40NDMgMjIwLjkxMmMxLjA4NiAxLjM1NyAyLjQ0NCAyLjQ0MyAzLjggMy4yNThsMTE0LjgzNCA2NS45NjhjMy4yNTggMS45IDcuMDU5IDIuNDQzIDEwLjU4OCAxLjM1N0wyNTIuNDcgNzAuNTE1Yy0uODE1LTEuMDg2LTEuOS0xLjktMi45ODYtMi43MTRaIiBtYXNrPSJ1cmwoI2QpIi8+PG1hc2sgaWQ9ImciIGZpbGw9IiNmZmYiPjx1c2UgeGxpbms6aHJlZj0iI2UiLz48L21hc2s+PHBhdGggZmlsbD0idXJsKCNmKSIgZD0iTTI0OS43NTYgMjIzLjg5OGMzLjI1OC0xLjkgNS43MDEtNS4xNTggNi43ODctOC42ODdMMTMwLjU3OS4yMDRjLTMuMjU4LS41NDMtNi43ODctLjI3Mi05Ljc3MyAxLjYyOEw2Ljc4NiA2Ny41M2wxMjIuOTc5IDIyNC4yMzhjMS42MjgtLjI3MiAzLjUyOS0uODE1IDUuMTU4LTEuNjNsMTE0LjgzMy02Ni4yMzlaIiBtYXNrPSJ1cmwoI2cpIi8+PC9zdmc+Cg==" x="80" y="469" width="52" height="52"/>
+  <text x="106" y="567" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">tests/ · move/</text>
+  <text class="mono" x="106" y="593" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">node:test · 측정</text>
+  <rect x="515" y="450" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PCEtLSBAbGljZW5zZSBsdWNpZGUtc3RhdGljIHYxLjcyLjAgLSBJU0MgLS0+CjxzdmcKICBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1saXN0LW9yZGVyZWQiCiAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzNkNDY2MCIKICBzdHJva2Utd2lkdGg9IjEuNyIKICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIKPgogIDxwYXRoIGQ9Ik0xMSA1aDEwIiAvPgogIDxwYXRoIGQ9Ik0xMSAxMmgxMCIgLz4KICA8cGF0aCBkPSJNMTEgMTloMTAiIC8+CiAgPHBhdGggZD0iTTQgNGgxdjUiIC8+CiAgPHBhdGggZD0iTTQgOWgyIiAvPgogIDxwYXRoIGQ9Ik02LjUgMjBIMy40YzAtMSAyLjYtMS45MjUgMi42LTMuNWExLjUgMS41IDAgMCAwLTIuNi0xLjAyIiAvPgo8L3N2Zz4K" x="534" y="469" width="52" height="52"/>
+  <text x="560" y="567" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">lis.js</text>
+  <text class="mono" x="560" y="593" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">안 옮길 줄 선택</text>
+  <rect x="725" y="450" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PCEtLSBAbGljZW5zZSBsdWNpZGUtc3RhdGljIHYxLjcyLjAgLSBJU0MgLS0+CjxzdmcKICBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1iaW5hcnkiCiAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzNkNDY2MCIKICBzdHJva2Utd2lkdGg9IjEuNyIKICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIKPgogIDxyZWN0IHg9IjE0IiB5PSIxNCIgd2lkdGg9IjQiIGhlaWdodD0iNiIgcng9IjIiIC8+CiAgPHJlY3QgeD0iNiIgeT0iNCIgd2lkdGg9IjQiIGhlaWdodD0iNiIgcng9IjIiIC8+CiAgPHBhdGggZD0iTTYgMjBoNCIgLz4KICA8cGF0aCBkPSJNMTQgMTBoNCIgLz4KICA8cGF0aCBkPSJNNiAxNGgydjYiIC8+CiAgPHBhdGggZD0iTTE0IDRoMnY2IiAvPgo8L3N2Zz4K" x="744" y="469" width="52" height="52"/>
+  <text x="770" y="567" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">fenwick.js</text>
+  <text class="mono" x="770" y="593" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">줄 위치 계산</text>
+  <rect x="935" y="450" width="90" height="90" rx="18" fill="#ffffff" stroke="#3d434f" stroke-width="1.5"/>
+  <image href="data:image/svg+xml;base64,PCEtLSBAbGljZW5zZSBsdWNpZGUtc3RhdGljIHYxLjcyLjAgLSBJU0MgLS0+CjxzdmcKICBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1oaXN0b3J5IgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICB3aWR0aD0iMjQiCiAgaGVpZ2h0PSIyNCIKICB2aWV3Qm94PSIwIDAgMjQgMjQiCiAgZmlsbD0ibm9uZSIKICBzdHJva2U9IiMzZDQ2NjAiCiAgc3Ryb2tlLXdpZHRoPSIxLjciCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMyAxMmE5IDkgMCAxIDAgOS05IDkuNzUgOS43NSAwIDAgMC02Ljc0IDIuNzRMMyA4IiAvPgogIDxwYXRoIGQ9Ik0zIDN2NWg1IiAvPgogIDxwYXRoIGQ9Ik0xMiA3djVsNCAyIiAvPgo8L3N2Zz4K" x="954" y="469" width="52" height="52"/>
+  <text x="980" y="567" font-size="20" font-weight="600" fill="#eceef2" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">history.js</text>
+  <text class="mono" x="980" y="593" font-size="16" fill="#8e94a0" text-anchor="middle" paint-order="stroke" stroke="#111419" stroke-opacity=".8" stroke-width="6">뒤로 · 앞으로</text>
+
+  <!-- LEGEND -->
+  <line x1="40" y1="652" x2="86" y2="652" stroke="#5e9cf5" stroke-width="3"/>
+  <text class="mono" x="96" y="658" font-size="17" fill="#8e94a0">화면 갱신 흐름</text>
+  <line x1="300" y1="652" x2="346" y2="652" stroke="#a9aeb8" stroke-width="2.4"/>
+  <text class="mono" x="356" y="658" font-size="17" fill="#8e94a0">내부 호출</text>
+  <line x1="510" y1="652" x2="556" y2="652" stroke="#a9aeb8" stroke-width="2.4" stroke-dasharray="7 8"/>
+  <text class="mono" x="566" y="658" font-size="17" fill="#8e94a0">개발 시점</text>
+  <text class="mono" x="1160" y="658" font-size="15" fill="#8e94a0" text-anchor="end">icons: Lucide · svgl</text>
+
+  <text x="40" y="712" font-size="22" fill="#eceef2">상태가 바뀌면 네 파일이 차례로 일하고, 바뀐 곳만 브라우저에 반영합니다.</text>
+</svg>

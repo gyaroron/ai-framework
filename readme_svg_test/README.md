@@ -12,13 +12,14 @@
 
 | 장 | 내용 | 시간 |
 | --- | --- | --- |
-| [1](#1--7) | 표지: `UI = f(state)` | 10초 |
-| [2](#2--7) | 왜 React인가: 명령형(imperative)과 선언형(declarative) | 50초 |
-| [3](#3--7) | 이점 ①: setState를 3번 불러도 화면은 한 번만 바뀜 | 50초 |
-| [4](#4--7) | 이점 ②: 컴포넌트(component)로 나누고 props로 연결 | 45초 |
-| [5](#5--7) | 코드 폴더 구조 | 30초 |
-| [6](#6--7) | diff 지연을 줄이다: 알고리즘과 수치 (전체의 15%) | 36초 |
-| [7](#7--7) | 마무리 | 19초 |
+| [1](#1--8) | 표지: `UI = f(state)` | 8초 |
+| [2](#2--8) | 왜 React인가: 명령형(imperative)과 선언형(declarative) | 45초 |
+| [3](#3--8) | 이점 ①: setState를 3번 불러도 화면은 한 번만 바뀜 | 45초 |
+| [4](#4--8) | 이점 ②: 컴포넌트(component)로 나누고 props로 연결 | 38초 |
+| [5](#5--8) | miniReact가 화면을 바꾸는 길 (stack-diagram 방식) | 30초 |
+| [6](#6--8) | 코드 폴더 구조 | 22초 |
+| [7](#7--8) | diff 지연을 줄이다: 알고리즘과 수치 (전체의 15%) | 36초 |
+| [8](#8--8) | 마무리 | 16초 |
 
 ## 코드 출처
 
@@ -26,71 +27,81 @@
 | --- | --- | --- |
 | [`mini_React/app.js`](https://github.com/kimtaeg/ai-framework/blob/gyaroron_kjs/mini_React/app.js) | `gyaroron_kjs` | 2 · 4장: React를 쓰는 이유와 이점 |
 | [`phase2/app.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/phase2/app.js) | `sikhesung` | 3장: mini React만 쓰는 Batching 데모 |
-| [`src/lib/fenwick.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/fenwick.js) | `sikhesung` | 6장: 알고리즘 코드 |
-| [`README.md`](https://github.com/kimtaeg/ai-framework/blob/gyaroron_kjs/README.md) | `gyaroron_kjs` | 제목, 5장의 폴더 구조, 6장의 측정값. 원본은 [백업 브랜치](https://github.com/gyaroron/ai-framework/blob/backup/gyaroron_kjs-original/README.md)에 보관 |
+| [`src/lib/fenwick.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/fenwick.js) | `sikhesung` | 7장: 알고리즘 코드 |
+| [`README.md`](https://github.com/kimtaeg/ai-framework/blob/gyaroron_kjs/README.md) | `gyaroron_kjs` | 제목, 6장의 폴더 구조, 7장의 측정값. 원본은 [백업 브랜치](https://github.com/gyaroron/ai-framework/blob/backup/gyaroron_kjs-original/README.md)에 보관 |
 
 > [!NOTE]
-> 2 · 4장의 코드는 `gyaroron_kjs` 브랜치의 구현이고, 3장의 코드와 5장의 폴더 구조, 6장의 알고리즘 · 측정값은 `sikhesung` 브랜치의 구현입니다. 두 브랜치는 diff를 구현한 방식이 다르므로, 6장의 측정값을 2 · 4장의 코드에 그대로 적용하지 않습니다.
+> 2 · 4장의 코드는 `gyaroron_kjs` 브랜치의 구현이고, 3장의 코드와 5장의 구조, 6장의 폴더 구조, 7장의 알고리즘 · 측정값은 `sikhesung` 브랜치의 구현입니다. 두 브랜치는 diff를 구현한 방식이 다르므로, 7장의 측정값을 2 · 4장의 코드에 그대로 적용하지 않습니다.
 
-<a href="#1--7">시작 ›</a>
+<a href="#1--8">시작 ›</a>
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
-###### 1 / 7
+###### 1 / 8
 
-<a href="#2--7"><img src="01_hero.svg" alt="miniReact 표지: 상태가 컴포넌트 함수를 거쳐 화면이 된다" width="100%"></a>
+<a href="#2--8"><img src="01_hero.svg" alt="miniReact 표지: 상태가 컴포넌트 함수를 거쳐 화면이 된다" width="100%"></a>
 
-<p align="right"><sub><a href="#2--7">다음 ›</a></sub></p>
+<p align="right"><sub><a href="#2--8">다음 ›</a></sub></p>
 
 > 화면은 현재 상태(state)를 바탕으로 만든 결과입니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
-###### 2 / 7
+###### 2 / 8
 
-<a href="#3--7"><img src="02_imperative_vs_declarative.svg" alt="명령형과 선언형 비교: 명령형은 개발자가 실제 DOM을 직접 고치고, 선언형은 miniReact가 바뀐 곳을 찾아 반영한다" width="100%"></a>
+<a href="#3--8"><img src="02_imperative_vs_declarative.svg" alt="명령형과 선언형 비교: 명령형은 개발자가 실제 DOM을 직접 고치고, 선언형은 miniReact가 바뀐 곳을 찾아 반영한다" width="100%"></a>
 
-<p align="right"><sub><a href="#1--7">‹ 이전</a> &nbsp;·&nbsp; <a href="#3--7">다음 ›</a></sub></p>
+<p align="right"><sub><a href="#1--8">‹ 이전</a> &nbsp;·&nbsp; <a href="#3--8">다음 ›</a></sub></p>
 
 > 명령형에서는 개발자가 DOM을 고치는 순서를 관리하고, 선언형에서는 개발자가 상태와 화면의 관계만 표현합니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
-###### 3 / 7
+###### 3 / 8
 
-<a href="#4--7"><img src="03_batching.svg" alt="왼쪽은 mini React의 phase2/app.js 코드, 오른쪽은 Batching 데모 화면. setState × 3 버튼을 누르면 setCount 줄이 세 번 켜지고 화면의 카운트는 0에서 3으로 한 번에 바뀐다" width="100%"></a>
+<a href="#4--8"><img src="03_batching.svg" alt="왼쪽은 mini React의 phase2/app.js 코드, 오른쪽은 Batching 데모 화면. setState × 3 버튼을 누르면 setCount 줄이 세 번 켜지고 화면의 카운트는 0에서 3으로 한 번에 바뀐다" width="100%"></a>
 
-<p align="right"><sub><a href="#2--7">‹ 이전</a> &nbsp;·&nbsp; <a href="#4--7">다음 ›</a></sub></p>
+<p align="right"><sub><a href="#2--8">‹ 이전</a> &nbsp;·&nbsp; <a href="#4--8">다음 ›</a></sub></p>
 
 > 개발자가 `setCount`를 3번 불러도, miniReact가 변경을 모아 화면의 숫자를 한 번만 고칩니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
-###### 4 / 7
+###### 4 / 8
 
-<a href="#5--7"><img src="04_components.svg" alt="App이 state를 갖고 자식 컴포넌트 네 개에 props를 내려 주며, SqlPanel은 SqlResultTable에 table을 내려 준다" width="100%"></a>
+<a href="#5--8"><img src="04_components.svg" alt="App이 state를 갖고 자식 컴포넌트 네 개에 props를 내려 주며, SqlPanel은 SqlResultTable에 table을 내려 준다" width="100%"></a>
 
-<p align="right"><sub><a href="#3--7">‹ 이전</a> &nbsp;·&nbsp; <a href="#5--7">다음 ›</a></sub></p>
+<p align="right"><sub><a href="#3--8">‹ 이전</a> &nbsp;·&nbsp; <a href="#5--8">다음 ›</a></sub></p>
 
 > `App`만 state를 갖고, 자식 컴포넌트는 받은 props만 읽어 화면의 모습을 표현합니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
-###### 5 / 7
+###### 5 / 8
 
-<a href="#6--7"><img src="05_folder_structure.svg" alt="코드 폴더 구조: 라이브러리 본체에서 vdom.js, diff.js, patch.js가 차례로 일하고, 나머지는 측정, 테스트, 시연과 학습 페이지, 서버와 도구 묶음이다" width="100%"></a>
+<a href="#6--8"><img src="05_architecture.svg" alt="miniReact 구조: 브라우저의 이벤트가 component.js, vdom.js, diff.js, patch.js를 차례로 거쳐 다시 브라우저의 DOM에 반영된다" width="100%"></a>
 
-<p align="right"><sub><a href="#4--7">‹ 이전</a> &nbsp;·&nbsp; <a href="#6--7">다음 ›</a></sub></p>
+<p align="right"><sub><a href="#4--8">‹ 이전</a> &nbsp;·&nbsp; <a href="#6--8">다음 ›</a></sub></p>
+
+> 상태가 바뀌면 `component.js` → `vdom.js` → `diff.js` → `patch.js`가 차례로 일하고, 바뀐 곳만 브라우저의 DOM에 반영합니다.
+
+<picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
+
+###### 6 / 8
+
+<a href="#7--8"><img src="06_folder_structure.svg" alt="코드 폴더 구조: 라이브러리 본체에서 vdom.js, diff.js, patch.js가 차례로 일하고, 나머지는 측정, 테스트, 시연과 학습 페이지, 서버와 도구 묶음이다" width="100%"></a>
+
+<p align="right"><sub><a href="#5--8">‹ 이전</a> &nbsp;·&nbsp; <a href="#7--8">다음 ›</a></sub></p>
 
 > miniReact 코드는 라이브러리 본체, 측정, 테스트, 시연 · 학습 페이지, 서버 · 도구 다섯 묶음으로 나뉩니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
-###### 6 / 7
+###### 7 / 8
 
-<a href="#7--7"><img src="06_numbers.svg" alt="측정값 세 가지: 줄을 옮긴 횟수 999번에서 1번, 계산 시간 2,978ms에서 23ms, 기록 메모리 206.9MB에서 22.7MB" width="100%"></a>
+<a href="#8--8"><img src="07_numbers.svg" alt="측정값 세 가지: 줄을 옮긴 횟수 999번에서 1번, 계산 시간 2,978ms에서 23ms, 기록 메모리 206.9MB에서 22.7MB" width="100%"></a>
 
-<p align="right"><sub><a href="#5--7">‹ 이전</a> &nbsp;·&nbsp; <a href="#7--7">다음 ›</a></sub></p>
+<p align="right"><sub><a href="#6--8">‹ 이전</a> &nbsp;·&nbsp; <a href="#8--8">다음 ›</a></sub></p>
 
 > 상태가 바뀔 때마다 diff는 옛 tree와 새 tree를 비교합니다. 이 구현은 그 지연을 재고, 세 곳에서 줄였습니다.
 
@@ -102,11 +113,11 @@
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
-###### 7 / 7
+###### 8 / 8
 
-<a href="#1--7"><img src="07_closing.svg" alt="마무리: miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현이다" width="100%"></a>
+<a href="#1--8"><img src="08_closing.svg" alt="마무리: miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현이다" width="100%"></a>
 
-<p align="right"><sub><a href="#6--7">‹ 이전</a> &nbsp;·&nbsp; <a href="#1--7">처음 ↺</a></sub></p>
+<p align="right"><sub><a href="#7--8">‹ 이전</a> &nbsp;·&nbsp; <a href="#1--8">처음 ↺</a></sub></p>
 
 > miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현입니다.
 

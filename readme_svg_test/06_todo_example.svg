@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="가상의 할 일 목록 페이지와 그 코드. 추가 버튼을 누르면 setTodos 줄과 화면을 표현하는 줄이 차례로 켜지고, 화면에는 기존 두 줄은 그대로 둔 채 새 줄 하나만 추가된다">
   <style>
     text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
-    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .mono, .mono text { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
     .hc { animation: hc 10s linear infinite; }
     .hs { animation: hs 10s linear infinite; }
     .hr { animation: hr 10s linear infinite; }

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="왼쪽에는 mini React의 phase2/app.js 코드, 오른쪽에는 Batching 데모 화면을 본뜬 그림. setState 3번 버튼을 누르면 setCount 줄이 세 번 켜지고, 화면의 카운트는 0에서 3으로 한 번에 바뀐다">
   <style>
     text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
-    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .mono, .mono text { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
     .v0 { animation: v0 10s linear infinite; }
     .v1 { animation: v1 10s linear infinite; }
     .v2 { animation: v2 10s linear infinite; }

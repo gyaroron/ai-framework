@@ -22,9 +22,11 @@
   <text x="50" y="398" font-size="20" fill="#fdba74">miniReact</text>
   <rect class="bar b2" x="50" y="410" width="4" height="20" rx="2" fill="#fb923c"/>
   <text x="370" y="428" font-size="22" font-weight="700" fill="#fdba74" text-anchor="end">1번</text>
-  <text class="big" x="210" y="530" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">999번 → 1번</text>
-  <text x="50" y="604" font-size="20" fill="#cbd5e1">순서가 맞는 999줄은 그대로</text>
-  <text x="50" y="632" font-size="20" fill="#cbd5e1">두고, 1줄만 옮깁니다.</text>
+  <text class="big" x="210" y="500" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">999번 → 1번</text>
+  <text x="50" y="548" font-size="20" fill="#94a3b8">고친 코드</text>
+  <text x="50" y="578" font-size="20" font-weight="700" fill="#93c5fd" style="font-family: Consolas, 'D2Coding', monospace">lis.js · diff.js 의 place</text>
+  <text x="50" y="620" font-size="20" fill="#cbd5e1">순서가 맞는 999줄은 그대로</text>
+  <text x="50" y="646" font-size="20" fill="#cbd5e1">두고, 1줄만 옮깁니다.</text>
 
   <rect x="420" y="140" width="360" height="520" rx="16" fill="#111c33" stroke="#334155"/>
   <text x="440" y="190" font-size="26" font-weight="800" fill="#f8fafc">계산에 걸린 시간</text>
@@ -36,9 +38,11 @@
   <text x="440" y="398" font-size="20" fill="#fdba74">지금 방식</text>
   <rect class="bar b2" x="440" y="410" width="4" height="20" rx="2" fill="#fb923c"/>
   <text x="760" y="428" font-size="22" font-weight="700" fill="#fdba74" text-anchor="end">23 ms</text>
-  <text class="big" x="600" y="530" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">127배 빠름</text>
-  <text x="440" y="604" font-size="20" fill="#cbd5e1">1 ms는 1초를 1,000으로</text>
-  <text x="440" y="632" font-size="20" fill="#cbd5e1">나눈 시간입니다.</text>
+  <text class="big" x="600" y="500" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">127배 빠름</text>
+  <text x="440" y="548" font-size="20" fill="#94a3b8">고친 코드</text>
+  <text x="440" y="578" font-size="20" font-weight="700" fill="#93c5fd" style="font-family: Consolas, 'D2Coding', monospace">fenwick.js 의 FenwickSum</text>
+  <text x="440" y="620" font-size="20" fill="#cbd5e1">1 ms는 1초를 1,000으로</text>
+  <text x="440" y="646" font-size="20" fill="#cbd5e1">나눈 시간입니다.</text>
 
   <rect x="810" y="140" width="360" height="520" rx="16" fill="#111c33" stroke="#334155"/>
   <text x="830" y="190" font-size="26" font-weight="800" fill="#f8fafc">기록에 쓰는 메모리</text>
@@ -50,9 +54,11 @@
   <text x="830" y="398" font-size="20" fill="#fdba74">바뀐 부분만 저장</text>
   <rect class="bar b2" x="830" y="410" width="24" height="20" rx="4" fill="#fb923c"/>
   <text x="1150" y="428" font-size="22" font-weight="700" fill="#fdba74" text-anchor="end">22.7 MB</text>
-  <text class="big" x="990" y="530" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">9.1배 적음</text>
-  <text x="830" y="604" font-size="20" fill="#cbd5e1">화면 전체는 10번에 한 번만</text>
-  <text x="830" y="632" font-size="20" fill="#cbd5e1">저장합니다.</text>
+  <text class="big" x="990" y="500" font-size="44" font-weight="800" fill="#fb923c" text-anchor="middle">9.1배 적음</text>
+  <text x="830" y="548" font-size="20" fill="#94a3b8">고친 코드</text>
+  <text x="830" y="578" font-size="20" font-weight="700" fill="#93c5fd" style="font-family: Consolas, 'D2Coding', monospace">history.js 의 DeltaHistory</text>
+  <text x="830" y="620" font-size="20" fill="#cbd5e1">화면 전체는 10번에 한 번만</text>
+  <text x="830" y="646" font-size="20" fill="#cbd5e1">저장합니다.</text>
 
   <text x="40" y="708" font-size="20" fill="#94a3b8">비교 대상은 React 본체가 아니라, 같은 조건으로 만든 비교용 코드와 최적화 전 코드입니다.</text>
 </svg>

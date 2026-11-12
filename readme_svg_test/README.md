@@ -94,6 +94,12 @@
 
 > 상태가 바뀔 때마다 diff는 옛 tree와 새 tree를 비교합니다. 이 구현은 그 지연을 재고, 세 곳에서 줄였습니다.
 
+| 줄인 곳 | 고친 코드 | 무엇을 바꿨나 |
+| --- | --- | --- |
+| 줄을 옮긴 횟수<br>999번 → 1번 | [`lis.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/lis.js)<br>[`diff.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/diff.js)의 `place` | `place`가 `longestIncreasingSubsequence`로 서로의 앞뒤 순서가 그대로인 줄을 고르고, 그 줄은 옮기지 않습니다. |
+| 계산에 걸린 시간<br>2,978 ms → 23 ms | [`fenwick.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/fenwick.js)의 `FenwickSum` | 줄의 현재 위치를 `indexOf` · `splice`로 목록을 훑어 찾던 것을, `countBefore`가 적은 횟수의 덧셈으로 구하게 바꿨습니다. |
+| 기록에 쓰는 메모리<br>206.9 MB → 22.7 MB | [`history.js`](https://github.com/kimtaeg/ai-framework/blob/sikhesung/src/lib/history.js)의 `DeltaHistory` | 기록마다 화면 tree 전체를 저장하던 것을, 10번에 한 번만 tree를 저장하고 그 사이에는 패치(patch)만 저장하게 바꿨습니다. |
+
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>
 
 ###### 7 / 7

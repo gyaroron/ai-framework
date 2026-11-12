@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="왼쪽에는 mini React의 phase2/app.js 코드, 오른쪽에는 Batching 데모 화면을 본뜬 그림. setState 3번 버튼을 누르면 setCount 줄이 세 번 켜지고, 화면의 카운트는 0에서 3으로 한 번에 바뀐다">
+  <style>
+    text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
+    .v0 { animation: v0 10s linear infinite; }
+    .v1 { animation: v1 10s linear infinite; }
+    .v2 { animation: v2 10s linear infinite; }
+    .v3 { animation: v3 10s linear infinite; }
+    .q0 { animation: q0 10s linear infinite; }
+    .q1 { animation: q1 10s linear infinite; }
+    .old { animation: old 10s linear infinite; }
+    .new { animation: new 10s linear infinite; }
+    .hc { animation: hc 10s linear infinite; }
+    .h1 { animation: h1 10s linear infinite; }
+    .h2 { animation: h2 10s linear infinite; }
+    .h3 { animation: h3 10s linear infinite; }
+    .hr { animation: hr 10s linear infinite; }
+    .fl { animation: fl 10s linear infinite; }
+    .cur { animation: cur 10s ease-in-out infinite; }
+    @keyframes v0 { 0%, 19% { opacity: 1; } 20%, 97% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes v1 { 0%, 19% { opacity: 0; } 20%, 27% { opacity: 1; } 28%, 100% { opacity: 0; } }
+    @keyframes v2 { 0%, 27% { opacity: 0; } 28%, 35% { opacity: 1; } 36%, 100% { opacity: 0; } }
+    @keyframes v3 { 0%, 35% { opacity: 0; } 36%, 95% { opacity: 1; } 98%, 100% { opacity: 0; } }
+    @keyframes q0 { 0%, 19% { opacity: 1; } 20%, 55% { opacity: 0; } 57%, 100% { opacity: 1; } }
+    @keyframes q1 { 0%, 19% { opacity: 0; } 20%, 55% { opacity: 1; } 57%, 100% { opacity: 0; } }
+    @keyframes old { 0%, 55% { opacity: 1; } 57%, 95% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes new { 0%, 55% { opacity: 0; } 57%, 95% { opacity: 1; } 98%, 100% { opacity: 0; } }
+    @keyframes hc { 0%, 13% { opacity: 0; } 15%, 19% { opacity: 1; } 20%, 100% { opacity: 0; } }
+    @keyframes h1 { 0%, 19% { opacity: 0; } 20%, 27% { opacity: 1; } 28%, 100% { opacity: 0; } }
+    @keyframes h2 { 0%, 27% { opacity: 0; } 28%, 35% { opacity: 1; } 36%, 100% { opacity: 0; } }
+    @keyframes h3 { 0%, 35% { opacity: 0; } 36%, 43% { opacity: 1; } 44%, 100% { opacity: 0; } }
+    @keyframes hr { 0%, 44% { opacity: 0; } 46%, 57% { opacity: 1; } 60%, 100% { opacity: 0; } }
+    @keyframes fl { 0%, 55% { opacity: 0; } 57%, 68% { opacity: 1; } 74%, 100% { opacity: 0; } }
+    @keyframes cur { 0% { transform: translate(0, 0); } 13%, 22% { transform: translate(-380px, -96px); } 40%, 100% { transform: translate(0, 0); } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } .v0, .v1, .v2, .q1, .old, .hc, .h1, .h2, .h3, .hr, .fl { opacity: 0; } }
+  </style>
+
+  <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
+  <text x="40" y="66" font-size="32" font-weight="800" fill="#f8fafc">setState를 3번 불러도 화면은 한 번만 바뀝니다</text>
+  <text x="40" y="102" font-size="20" fill="#cbd5e1">왼쪽: mini React의 phase2/app.js · 오른쪽: 그 코드가 만드는 화면을 본뜬 그림</text>
+
+  <rect x="20" y="126" width="590" height="560" rx="16" fill="#111c33" stroke="#334155"/>
+  <text x="40" y="164" font-size="20" font-weight="700" fill="#93c5fd">App 안 (루트 component)</text>
+
+  <rect class="h1" x="30" y="276" width="570" height="34" rx="6" fill="#1e40af"/>
+  <rect class="h2" x="30" y="310" width="570" height="34" rx="6" fill="#1e40af"/>
+  <rect class="h3" x="30" y="344" width="570" height="34" rx="6" fill="#1e40af"/>
+  <rect class="hr" x="30" y="462" width="570" height="34" rx="6" fill="#7c3f0f"/>
+  <rect class="hc" x="30" y="496" width="570" height="68" rx="6" fill="#334155"/>
+
+  <g class="mono" font-size="20" fill="#e2e8f0">
+    <text x="44" y="198"><tspan fill="#c084fc">const</tspan> [count, <tspan fill="#60a5fa">setCount</tspan>] = <tspan fill="#60a5fa">useState</tspan>(<tspan fill="#fdba74">0</tspan>);</text>
+    <text x="44" y="266">onBatch: () =&gt; {</text>
+    <text x="68" y="300"><tspan fill="#60a5fa">setCount</tspan>((c) =&gt; c + <tspan fill="#fdba74">1</tspan>);</text>
+    <text x="68" y="334"><tspan fill="#60a5fa">setCount</tspan>((c) =&gt; c + <tspan fill="#fdba74">1</tspan>);</text>
+    <text x="68" y="368"><tspan fill="#60a5fa">setCount</tspan>((c) =&gt; c + <tspan fill="#fdba74">1</tspan>);</text>
+    <text x="44" y="402">},</text>
+    <text x="44" y="486"><tspan fill="#60a5fa">h</tspan>(<tspan fill="#86efac">'b'</tspan>, { class: <tspan fill="#86efac">'batch-count'</tspan> }, count),</text>
+    <text x="44" y="520"><tspan fill="#60a5fa">h</tspan>(<tspan fill="#86efac">'button'</tspan>, { …, onClick: onBatch },</text>
+    <text x="68" y="554"><tspan fill="#86efac">'setState × 3'</tspan>),</text>
+  </g>
+  <text x="40" y="446" font-size="20" font-weight="700" fill="#93c5fd">BatchDemo 안 (자식 component)</text>
+  <text x="40" y="612" font-size="20" fill="#94a3b8">켜진 줄이 지금 실행되는 줄입니다.</text>
+  <text x="40" y="646" font-size="20" fill="#94a3b8">원본의 onBatch는 한 줄이고, 폭에 맞춰 나눴습니다.</text>
+
+  <rect x="640" y="126" width="540" height="420" rx="16" fill="#f8fafc"/>
+  <rect x="640" y="126" width="540" height="46" rx="16" fill="#cbd5e1"/>
+  <rect x="640" y="150" width="540" height="22" fill="#cbd5e1"/>
+  <circle cx="666" cy="149" r="7" fill="#f87171"/>
+  <circle cx="690" cy="149" r="7" fill="#fbbf24"/>
+  <circle cx="714" cy="149" r="7" fill="#4ade80"/>
+  <rect x="740" y="134" width="420" height="30" rx="15" fill="#f1f5f9"/>
+  <text class="mono" x="758" y="156" font-size="20" fill="#475569">localhost:5200/phase2/</text>
+
+  <text x="664" y="216" font-size="26" font-weight="800" fill="#0f172a">Batching 데모</text>
+
+  <rect x="664" y="236" width="238" height="136" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect class="fl" x="664" y="236" width="238" height="136" rx="10" fill="#ffedd5" stroke="#f97316" stroke-width="4"/>
+  <text class="old" x="783" y="314" font-size="64" font-weight="800" fill="#0f172a" text-anchor="middle">0</text>
+  <text class="new" x="783" y="314" font-size="64" font-weight="800" fill="#c2410c" text-anchor="middle">3</text>
+  <text x="783" y="352" font-size="20" fill="#64748b" text-anchor="middle">카운트</text>
+
+  <rect x="918" y="236" width="238" height="136" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect class="fl" x="918" y="236" width="238" height="136" rx="10" fill="#ffedd5" stroke="#f97316" stroke-width="4"/>
+  <text class="old" x="1037" y="314" font-size="64" font-weight="800" fill="#0f172a" text-anchor="middle">1</text>
+  <text class="new" x="1037" y="314" font-size="64" font-weight="800" fill="#c2410c" text-anchor="middle">2</text>
+  <text x="1037" y="352" font-size="20" fill="#64748b" text-anchor="middle">총 렌더 횟수</text>
+
+  <rect x="664" y="392" width="190" height="48" rx="8" fill="#2563eb"/>
+  <rect class="hc" x="664" y="392" width="190" height="48" rx="8" fill="#1e3a8a"/>
+  <text x="759" y="423" font-size="20" font-weight="700" fill="#ffffff" text-anchor="middle">setState × 3</text>
+  <rect x="866" y="392" width="190" height="48" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="961" y="423" font-size="20" fill="#0f172a" text-anchor="middle">setState × 1</text>
+
+  <text x="664" y="484" font-size="20" fill="#64748b">한 핸들러에서 setState 를 3번 호출해도</text>
+  <text x="664" y="512" font-size="20" fill="#64748b">microtask 로 모아서 렌더링은 1번만 일어납니다.</text>
+
+  <rect x="640" y="566" width="262" height="120" rx="14" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
+  <text x="771" y="602" font-size="20" fill="#93c5fd" text-anchor="middle">App이 가진 count 값</text>
+  <g class="mono" font-size="44" font-weight="700" fill="#f8fafc" text-anchor="middle">
+    <text class="v0" x="771" y="662">0</text>
+    <text class="v1" x="771" y="662">1</text>
+    <text class="v2" x="771" y="662">2</text>
+    <text class="v3" x="771" y="662">3</text>
+  </g>
+
+  <rect x="918" y="566" width="262" height="120" rx="14" fill="#3b2410" stroke="#fb923c" stroke-width="2"/>
+  <text x="1049" y="602" font-size="20" fill="#fdba74" text-anchor="middle">예약된 화면 갱신</text>
+  <text class="q0" x="1049" y="660" font-size="36" font-weight="700" fill="#fff7ed" text-anchor="middle">없음</text>
+  <text class="q1" x="1049" y="660" font-size="36" font-weight="700" fill="#fff7ed" text-anchor="middle">1번</text>
+
+  <g class="cur">
+    <path d="M1138 514 L1138 548 L1147 540 L1154 556 L1160 553 L1153 538 L1165 538 Z" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+  </g>
+
+  <text x="40" y="724" font-size="22" fill="#f8fafc">개발자는 count만 바꿉니다. miniReact가 세 번의 변경을 모아, 화면의 0을 3으로 한 번에 고칩니다.</text>
+</svg>

@@ -126,10 +126,10 @@
 
 ###### 9 / 9
 
-<a href="#1--9"><img src="09_closing.svg" alt="마무리: miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현이다" width="100%"></a>
+<a href="#1--9"><img src="09_closing.svg" alt="마무리: miniReact는 상태만 바꾸면 화면이 따라 바뀌고, 달라진 부분만 찾아서 고치며, 그 과정에 드는 시간과 메모리를 직접 측정해 줄였다" width="100%"></a>
 
 <p align="right"><sub><a href="#8--9">‹ 이전</a> &nbsp;·&nbsp; <a href="#1--9">처음 ↺</a></sub></p>
 
-> miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현입니다.
+> miniReact는 상태만 바꾸면 화면이 따라 바뀌도록 만들었고, 달라진 부분만 찾아서 고칩니다. 그리고 그 과정에 드는 시간과 메모리를 직접 측정해서 줄였습니다.
 
 <picture><img src="spacer.svg" alt="" width="1" height="1500"></picture>

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="마무리: miniReact는 상태로 화면을 설명하고, 필요한 변경을 찾아 적용하며, 그 과정의 비용을 측정해 줄인 구현이다">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="마무리: miniReact는 상태만 바꾸면 화면이 따라 바뀌고, 달라진 부분만 찾아서 고치며, 그 과정에 드는 시간과 메모리를 직접 측정해 줄였다">
   <style>
     text { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
     .mono { font-family: Consolas, 'D2Coding', 'JetBrains Mono', monospace; }
@@ -11,9 +11,9 @@
   <rect x="0" y="0" width="1200" height="750" rx="24" fill="#0f172a"/>
   <text x="600" y="150" font-size="22" font-weight="700" fill="#fb923c" letter-spacing="4" text-anchor="middle">마무리</text>
 
-  <text class="s1" x="600" y="262" font-size="42" font-weight="800" fill="#f8fafc" text-anchor="middle">miniReact는 상태로 화면을 설명하고,</text>
-  <text class="s2" x="600" y="338" font-size="42" font-weight="800" fill="#f8fafc" text-anchor="middle">필요한 변경을 찾아 적용하며,</text>
-  <text class="s3" x="600" y="414" font-size="42" font-weight="800" fill="#f8fafc" text-anchor="middle">그 과정의 비용을 측정해 줄인 구현입니다.</text>
+  <text class="s1" x="600" y="262" font-size="40" font-weight="800" fill="#f8fafc" text-anchor="middle">miniReact는 상태만 바꾸면 화면이 따라 바뀌고,</text>
+  <text class="s2" x="600" y="338" font-size="40" font-weight="800" fill="#f8fafc" text-anchor="middle">달라진 부분만 찾아서 고치며,</text>
+  <text class="s3" x="600" y="414" font-size="40" font-weight="800" fill="#f8fafc" text-anchor="middle">그 과정에 드는 시간과 메모리를 직접 측정해 줄였습니다.</text>
 
   <g class="s1">
     <rect x="110" y="510" width="300" height="84" rx="14" fill="#172f52" stroke="#60a5fa" stroke-width="2"/>
